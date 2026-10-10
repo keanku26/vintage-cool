@@ -331,6 +331,13 @@
   .user-chip{font-weight:700;color:var(--ink);}
   body:not(.is-owner) [data-nav="accounts"]{display:none;}
   body:not(.is-owner) #previewRoles{display:none;}
+
+  /* ---------- EMPLOYEE UI RESTRICTIONS ---------- */
+  body.is-employee [data-nav="dashboard"],
+  body.is-employee [data-nav="routes"],
+  body.is-employee [data-nav="employees"],
+  body.is-employee [data-nav="reports"]{display:none;}
+  body.is-employee #dateCard{display:none;}
 </style>
 </head>
 <body>
@@ -392,7 +399,7 @@
     </header>
 
     <main>
-  <div class="card" style="padding:10px 14px;">
+  <div class="card" id="dateCard" style="padding:10px 14px;">
     <div class="flexrow">
       <span class="small">Viewing day</span>
       <input type="date" id="dateInput" style="width:auto; padding:6px 8px; font-size:13px;">
@@ -708,6 +715,12 @@ function subscribeDay(dateStr){
 }
 
 document.getElementById("dateInput").addEventListener("change", (e)=>{
+  if(currentUser && currentUser.role==="employee"){
+    currentDate = todayStr();
+    e.target.value = currentDate;
+    showToast("Employees log today's data — the date stays on today.");
+    return;
+  }
   currentDate = e.target.value || todayStr();
   document.getElementById("dateLabel").textContent = "Business Operations & Sales Management";
   subscribeDay(currentDate);
@@ -733,6 +746,7 @@ function applyActiveWorkspace(){
 }
 function setActiveNav(key){
   if(key==='accounts' && !(currentUser&&currentUser.role==='cousin')){ showToast("Accounts is owner-only."); return; }
+  if(currentUser && currentUser.role==='employee' && ['dashboard','routes','employees','reports'].includes(key)) return;
   activeNav=key;
   document.querySelectorAll('[data-nav]').forEach(btn=>btn.classList.toggle('active',btn.dataset.nav===key));
   applyActiveWorkspace();
@@ -1957,6 +1971,8 @@ function applyRoleChrome(){
   const chip=document.getElementById("userChip");
   if(chip) chip.textContent=currentUser?(currentUser.name+" · "+roleLabel(currentUser.role)):"—";
   document.body.classList.toggle("is-owner", !!(currentUser&&currentUser.role==="cousin"));
+  document.body.classList.toggle("is-manager", !!(currentUser&&currentUser.role==="manager"));
+  document.body.classList.toggle("is-employee", !!(currentUser&&currentUser.role==="employee"));
   if(currentUser&&currentUser.role==="cousin"){
     if(!ownerPreview) ownerPreview="cousin";
     document.querySelectorAll(".role-btn[data-role]").forEach(b=>b.classList.toggle("active",b.dataset.role===ownerPreview));
@@ -1966,6 +1982,14 @@ function enterApp(){
   const ls=document.getElementById("loginScreen");
   if(ls) ls.classList.add("hidden");
   applyRoleChrome();
+  if(currentUser && currentUser.role==="employee"){
+    currentDate = todayStr();
+    const di=document.getElementById("dateInput");
+    if(di) di.value = currentDate;
+    subscribeDay(currentDate);
+    if(activeNav==="dashboard"||['routes','employees','reports'].includes(activeNav)) activeNav="trips";
+    document.querySelectorAll('[data-nav]').forEach(btn=>btn.classList.toggle('active',btn.dataset.nav===activeNav));
+  }
   renderDashboard();
   applyActiveWorkspace();
   if(activeNav!=="dashboard") renderWorkspace();
