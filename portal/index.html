@@ -2031,9 +2031,11 @@ async function bootAuth(){
     bindEmployeeIdentity();
     enterApp();
     fetchUsersOnce().then(users=>{
+      if(!users||!users.length) return; // list didn't load — skip revalidation rather than false-logout
       const still=users.find(u=>String(u.username||"").toLowerCase()===String(s.username).toLowerCase());
-      if(still&&still.active===false){ showToast("This account was deactivated."); setTimeout(doLogout,1200); }
-      if(still&&(still.name!==s.name||still.role!==s.role)){ currentUser={username:still.username,name:still.name||still.username,role:still.role||"employee"}; setSession(currentUser); applyRoleChrome(); renderDashboard(); }
+      if(!still){ showToast("This account no longer exists."); setTimeout(doLogout,1200); return; }
+      if(still.active===false){ showToast("This account was deactivated."); setTimeout(doLogout,1200); return; }
+      if(still.name!==s.name||still.role!==s.role){ currentUser={username:still.username,name:still.name||still.username,role:still.role||"employee"}; setSession(currentUser); applyRoleChrome(); renderDashboard(); }
     });
   } else {
     showLogin();
