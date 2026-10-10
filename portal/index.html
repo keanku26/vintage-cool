@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vintage Cool Hub — Business Operations & Sales Management</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#f6f9fc; --card:#ffffff; --ink:#0d1b2e; --sub:#5a6b80;
+    --brand:#114B9F; --brand-dark:#0A3675; --good:#1f8a4c; --warn:#c9862b; --bad:#c62330;
+    --line:#aab9c6; --chip:#e7edf4;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0d1620; --card:#16222f; --ink:#e9eff6; --sub:#9bacc0;
+      --brand:#2f6fe4; --brand-dark:#1f4fa8; --good:#3fbf72; --warn:#e0a94e; --bad:#e2695f;
+      --line:#2b3b4f; --chip:#1c2a3a;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d1620; --card:#16222f; --ink:#e9eff6; --sub:#9bacc0;
+    --brand:#2f6fe4; --brand-dark:#1f4fa8; --good:#3fbf72; --warn:#e0a94e; --bad:#e2695f;
+    --line:#2b3b4f; --chip:#1c2a3a;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Work Sans', -apple-system, sans-serif;
+    min-height:100%;
+  }
+  header{
+    position:sticky; top:0; z-index:10; background:var(--brand);
+    color:#fff; padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px;
+  }
+  header h1{margin:0 0 2px; font-size:19px; font-weight:700; font-family:'Fraunces', serif;}
+  header .sub{font-size:12.5px; opacity:.9;}
+  .roles{display:flex; gap:8px; margin-top:12px;}
+  .role-btn{
+    flex:1; padding:9px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.4);
+    background:rgba(255,255,255,.12); color:#fff; font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .role-btn.active{background:#fff; color:var(--brand-dark); border-color:#fff;}
+  main{max-width:520px; margin:0 auto; padding:14px 14px 60px;}
+  .card{
+    background:var(--card); border:1.5px solid var(--line); border-radius:6px;
+    padding:14px; margin-bottom:12px;
+  }
+  .card h2{margin:0 0 10px; font-size:15px; font-weight:700; color:var(--brand-dark); font-family:'Fraunces', serif;}
+  .row{display:flex; gap:10px;}
+  .row > *{flex:1;}
+  label{display:block; font-size:12px; color:var(--sub); margin:8px 0 4px; font-weight:600;}
+  input[type=number], input[type=text], input[type=date], input[type=tel], select{
+    width:100%; padding:10px 11px; border-radius:6px; border:1px solid var(--line);
+    background:var(--bg); color:var(--ink); font-size:15px;
+  }
+  /* Canonical form field styling: use this for all standard text-entry fields. */
+  .standard-field{
+    width:100% !important; height:40px; box-sizing:border-box; padding:10px 11px !important;
+    border-radius:6px !important; border:1px solid var(--line) !important;
+    background:var(--bg) !important; color:var(--ink) !important; font-size:15px !important;
+    font-family:inherit;
+  }
+  .pricebtns{display:flex; gap:8px;}
+  .pricebtns button{
+    flex:1; padding:9px 4px; border-radius:6px; border:1px solid var(--line);
+    background:var(--bg); color:var(--ink); font-size:13.5px; font-weight:600; cursor:pointer;
+  }
+  .pricebtns button.sel{background:var(--brand); border-color:var(--brand); color:#fff;}
+  .customer-form-stack{display:flex; flex-direction:column; gap:0;}
+  .customer-form-stack input{width:100%; box-sizing:border-box;}
+  .paybtns{display:flex; gap:8px; margin-top:2px;}
+  .paybtns button{
+    flex:1; padding:9px 4px; border-radius:6px; border:1px solid var(--line);
+    background:var(--bg); color:var(--ink); font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .paybtns button.sel{background:var(--ink); border-color:var(--ink); color:var(--card);}
+  .primary{
+    width:100%; margin-top:14px; padding:13px; border:none; border-radius:4px;
+    background:var(--bad); color:#fff; font-size:15px; font-weight:700; cursor:pointer;
+  }
+  .primary:active{background:#a81c27;}
+  .primary.warn{background:var(--warn);}
+  .ghost{
+    width:100%; margin-top:8px; padding:10px; border-radius:4px; border:1px solid var(--line);
+    background:transparent; color:var(--sub); font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .stat{
+    background:var(--chip); border-radius:6px; padding:10px 12px;
+  }
+  .stat .n{font-size:20px; font-weight:800; color:var(--brand-dark);}
+  .stat .l{font-size:11.5px; color:var(--sub); margin-top:2px;}
+  .pill{
+    display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:99px;
+  }
+  .pill.pending{background:#fbe9d0; color:#8a5a12;}
+  .pill.confirmed{background:#d7f0dd; color:var(--good);}
+  :root[data-theme="dark"] .pill.pending, @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill.pending{background:#3a2b12; color:#e0a94e;}}
+  :root[data-theme="dark"] .pill.confirmed, @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill.confirmed{background:#123a22; color:#3fbf72;}}
+  .feed-item{
+    padding:10px 0; border-bottom:1px solid var(--line); font-size:13.5px;
+  }
+  .feed-item:last-child{border-bottom:none;}
+  .feed-item .top{display:flex; justify-content:space-between; font-weight:700;}
+  .feed-item .meta{color:var(--sub); font-size:12px; margin-top:2px;}
+  .empty{color:var(--sub); font-size:13px; text-align:center; padding:16px 4px;}
+  .banner{
+    display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:6px;
+    font-size:13px; font-weight:600; margin-bottom:12px;
+  }
+  .banner.info{background:var(--chip); color:var(--brand-dark);}
+  .banner.warn{background:#fbe9d0; color:#8a5a12;}
+  .banner.bad{background:#fbe0dc; color:var(--bad);}
+  .banner.good{background:#d7f0dd; color:var(--good);}
+  .toast{
+    position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom,0px));
+    transform:translateX(-50%); background:var(--ink); color:var(--bg);
+    padding:10px 16px; border-radius:99px; font-size:13px; font-weight:600;
+    opacity:0; pointer-events:none; transition:opacity .25s ease, bottom .25s ease; z-index:50;
+    white-space:nowrap; max-width:90vw; overflow:hidden; text-overflow:ellipsis;
+  }
+  .toast.show{opacity:1; bottom:calc(30px + env(safe-area-inset-bottom,0px));}
+  .small{font-size:12px; color:var(--sub);}
+  .flexrow{display:flex; justify-content:space-between; align-items:center;}
+  .divider{height:1px; background:var(--line); margin:12px 0;}
+  .confirm-card{
+    background:var(--chip); border:1.5px solid var(--brand); border-radius:8px;
+    padding:14px; margin-bottom:12px;
+  }
+  .confirm-card .num{font-size:22px; font-weight:800; color:var(--brand-dark);}
+  .confirm-card .details{font-size:14px; margin-top:4px;}
+  .confirm-card .sub{font-size:12px; color:var(--sub); margin-top:2px;}
+  .who-bar{
+    display:flex; align-items:center; gap:8px; background:var(--chip);
+    border-radius:6px; padding:8px 12px; margin-bottom:12px;
+  }
+  .who-bar input{flex:1; background:transparent; border:none; padding:4px 0; font-size:14px; font-weight:700; color:var(--ink);}
+  .who-bar input:focus{outline:none;}
+  .who-bar .lbl{font-size:11px; color:var(--sub); font-weight:600;}
+  .countdown{
+    background:var(--brand); color:#fff; border-radius:8px; padding:16px 18px;
+    margin-bottom:12px; text-align:center;
+  }
+  .countdown .n{font-size:40px; font-weight:800; line-height:1;}
+  .countdown .l{font-size:12.5px; opacity:.9; margin-top:4px; font-weight:600; letter-spacing:.3px;}
+  .countdown .bar{
+    height:7px; background:rgba(255,255,255,.28); border-radius:99px; margin-top:12px; overflow:hidden;
+  }
+  .countdown .bar-fill{height:100%; background:#fff; border-radius:99px;}
+  .countdown.low{background:var(--warn);}
+  .countdown.empty{background:var(--bad);}
+  .emp-card{
+    background:var(--card); border:1px solid var(--line); border-radius:8px;
+    padding:14px; margin-bottom:12px;
+  }
+  .emp-card .emp-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .emp-card .emp-head .name{font-size:15px; font-weight:800;}
+  .tabbar{
+    display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; margin-bottom:6px;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  }
+  .tabbar::-webkit-scrollbar{display:none;}
+  .tab-btn{
+    flex:0 0 auto; padding:8px 14px; border-radius:99px; border:1px solid var(--line);
+    background:var(--card); color:var(--ink); font-size:13px; font-weight:700; cursor:pointer;
+    white-space:nowrap;
+  }
+  .tab-btn.active{background:var(--brand); border-color:var(--brand); color:#fff;}
+  .swipe-hint{text-align:center; font-size:11px; color:var(--sub); margin:2px 0 12px;}
+  .mini-list{display:flex; flex-direction:column; gap:8px;}
+  .mini-row{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--chip); border-radius:6px; padding:10px 12px; cursor:pointer;
+  }
+  .mini-row .mname{font-weight:700; font-size:13.5px;}
+  .mini-row .mstats{font-size:12px; color:var(--sub); margin-top:2px;}
+  .mini-row .marrow{color:var(--sub); font-size:16px;}
+
+  /* ---------- VINTAGE COOL HUB NAVIGATION ---------- */
+  .app-shell{min-height:100vh;display:flex;}
+  .side-nav{position:fixed;left:0;top:0;bottom:0;width:238px;background:var(--card);border-right:1px solid var(--line);padding:22px 14px;z-index:20;display:flex;flex-direction:column;}
+  .brand-lockup{padding:2px 10px 20px;border-bottom:1px solid var(--line);margin-bottom:14px;}
+  .brand-lockup .brand-name{font-family:'Fraunces',serif;font-size:21px;font-weight:700;color:var(--ink);}
+  .brand-lockup .brand-product{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--brand);margin-top:3px;}
+  .nav-group{display:flex;flex-direction:column;gap:4px;}
+  .nav-item{width:100%;display:flex;align-items:center;gap:11px;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:var(--sub);font:600 13px 'Work Sans',sans-serif;text-align:left;cursor:pointer;}
+  .nav-item:hover{background:var(--chip);color:var(--ink);}
+  .nav-item.active{background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand-dark);}
+  .nav-icon{width:20px;text-align:center;font-size:15px;}
+  .nav-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:10px;}
+  .mobile-bottom-nav{display:none;}
+  .app-content{margin-left:238px;min-width:0;flex:1;}
+  header{position:sticky;top:0;z-index:15;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 22px;background:var(--brand);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+  header h1{margin:0;font-size:19px;font-weight:700;font-family:'Fraunces',serif;}
+  header .sub{font-size:12.5px;opacity:.9;}
+  .role-area{display:flex;align-items:center;gap:8px;}
+  .roles{display:flex;gap:6px;margin:0;}
+  .role-btn{flex:0 0 auto;padding:7px 11px;border-radius:6px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;font-size:12px;font-weight:600;cursor:pointer;}
+  .role-btn.active{background:#fff;color:var(--brand-dark);border-color:#fff;}
+  main{max-width:920px;margin:0 auto;padding:18px 22px 80px;}
+  .mobile-menu-title{display:none;}
+  .dashboard-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px;}
+  .dashboard-head h2{margin:0;font-family:'Fraunces',serif;font-size:25px;color:var(--ink);}
+  .dashboard-head .date{font-size:12px;color:var(--sub);}
+  .dash-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px;}
+  .dash-stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;}
+  .dash-stat .icon{font-size:18px;margin-bottom:8px;}
+  .dash-stat .value{font-size:22px;font-weight:800;color:var(--brand-dark);line-height:1.15;}
+  .dash-stat .label{font-size:11.5px;color:var(--sub);margin-top:4px;}
+  .dash-stat .hint{font-size:10.5px;color:var(--sub);margin-top:7px;}
+  .dash-section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;}
+  .dash-section h3{margin:0 0 11px;font-family:'Fraunces',serif;font-size:17px;color:var(--brand-dark);}
+  .dash-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .dash-action{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:11px 8px;text-align:left;font:600 12px 'Work Sans',sans-serif;cursor:pointer;}
+  .dash-action:hover{background:var(--chip);}
+  .dash-action .aicon{font-size:16px;display:block;margin-bottom:5px;color:var(--brand);}
+  .attention-list{display:flex;flex-direction:column;gap:8px;}
+  .attention-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 11px;border-radius:8px;background:var(--bg);border:1px solid var(--line);font-size:12.5px;}
+  .attention-item.warn{background:#fff8e8;border-color:#efd9a8;}
+  .attention-item.good{background:#eef9f1;border-color:#cbe8d3;}
+  .attention-item .count{font-weight:800;color:var(--ink);white-space:nowrap;}
+  .dash-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .dash-table th{text-align:left;color:var(--sub);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;padding:7px 6px;border-bottom:1px solid var(--line);}
+  .dash-table td{padding:9px 6px;border-bottom:1px solid var(--line);}
+  .dash-table tr:last-child td{border-bottom:none;}
+  .dash-table .num{text-align:right;font-weight:700;}
+  @media(max-width:760px){
+    .dashboard-head h2{font-size:23px;}
+    .dash-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+    .dash-stat{padding:12px;}
+    .dash-stat .value{font-size:20px;}
+    .dash-actions{grid-template-columns:repeat(2,1fr);}
+  }
+  @media(max-width:760px){
+    .side-nav{display:none;}
+    .app-content{margin-left:0;padding-bottom:72px;}
+    header{padding:12px 14px;align-items:flex-start;}
+    header h1{font-size:18px;}
+    .role-area{flex-direction:column;align-items:flex-end;gap:5px;}
+    .roles{display:flex;}
+    .role-btn{font-size:11px;padding:6px 8px;}
+    main{max-width:520px;padding:12px 14px 90px;}
+    .mobile-bottom-nav{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:25;display:flex;align-items:stretch;gap:2px;padding:7px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 28px rgba(0,0,0,.12);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;scroll-snap-type:x proximity;}
+    .mobile-bottom-nav::-webkit-scrollbar{display:none;}
+    .mobile-bottom-nav .nav-item{flex:0 0 76px;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:5px 2px;font-size:9px;text-align:center;scroll-snap-align:center;}
+    .mobile-bottom-nav .nav-icon{font-size:16px;line-height:16px;width:auto;}
+    .mobile-bottom-nav .nav-item.active{background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand-dark);}
+    .mobile-bottom-nav::after{content:"";flex:0 0 4px;}
+  }
+
+  /* ---------- SALES / CUSTOMERS / CREDIT WORKSPACE ---------- */
+  .workspace-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px;}
+  .workspace-head h2{margin:0;font-family:'Fraunces',serif;font-size:25px;color:var(--ink);}
+  .workspace-head .subline{font-size:12px;color:var(--sub);margin-top:3px;}
+  .workspace-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;}
+  .workspace-stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px;}
+  .workspace-stat .v{font-size:20px;font-weight:800;color:var(--brand-dark);}
+  .workspace-stat .l{font-size:11px;color:var(--sub);margin-top:4px;}
+  .money-line{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--sub);}
+  .money-line strong{color:var(--ink);font-size:13px;}
+  .money-line.total{font-weight:800;color:var(--ink);border-bottom:2px solid var(--line);}
+  .money-line.total strong{color:var(--brand-dark);font-size:15px;}
+  .workspace-card .meta strong{color:var(--ink);}
+  .workspace-two{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;}
+  .workspace-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;}
+  .workspace-card h3{margin:0 0 11px;font-family:'Fraunces',serif;font-size:18px;color:var(--brand-dark);}
+  .workspace-card h4{margin:14px 0 7px;font-size:13px;color:var(--ink);}
+  .workspace-search{display:flex;gap:8px;margin-bottom:10px;}
+  .workspace-search input{flex:1;min-width:0;}
+  .workspace-list{display:flex;flex-direction:column;gap:7px;}
+  .workspace-row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 11px;background:var(--bg);border:1px solid var(--line);border-radius:8px;}
+  .workspace-row .main{min-width:0;}
+  .workspace-row .title{font-weight:800;font-size:13px;color:var(--ink);}
+  .workspace-row .meta{font-size:11px;color:var(--sub);margin-top:3px;line-height:1.35;}
+  .workspace-row .amount{font-weight:800;white-space:nowrap;color:var(--brand-dark);}
+  .workspace-row button{flex:0 0 auto;}
+  .status-pill{display:inline-flex;align-items:center;border-radius:99px;padding:4px 8px;font-size:10px;font-weight:800;background:var(--chip);color:var(--sub);}
+  .status-pill.pending{background:#fff8e8;color:#8a6412;}
+  .status-pill.approved{background:#eef9f1;color:#24723a;}
+  .status-pill.rejected{background:#fff0f0;color:#a62b32;}
+  .balance-positive{color:#b42318;font-weight:800;}
+  .balance-zero{color:#24723a;font-weight:800;}
+  .module-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px;}
+  .module-tabs::-webkit-scrollbar{display:none;}
+  .module-tab{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--sub);border-radius:99px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+  .module-tab.active{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .btn-secondary{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:7px;padding:9px 12px;font-weight:700;cursor:pointer;}
+  .btn-danger{border:1px solid #e4b9bd;background:#fff0f0;color:#a62b32;border-radius:7px;padding:9px 12px;font-weight:700;cursor:pointer;}
+  .empty-state{padding:20px 10px;text-align:center;color:var(--sub);font-size:13px;}
+  .detail-box{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:11px;margin-top:9px;}
+  .detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .detail-grid .item{font-size:12px;color:var(--sub);}
+  .detail-grid strong{display:block;color:var(--ink);font-size:13px;margin-top:2px;}
+  @media(max-width:760px){
+    .workspace-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+    .workspace-two{grid-template-columns:1fr;gap:0;}
+    .workspace-head h2{font-size:23px;}
+  }
+
+
+  .workspace-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}.workspace-head h2{margin:0 0 4px}.subline{color:var(--sub);font-size:13px}.workspace-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0}.workspace-card h3{margin:0 0 12px}.workspace-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.workspace-stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}.workspace-stat .v{font-size:22px;font-weight:800}.workspace-stat .l{font-size:12px;color:var(--sub);margin-top:3px}.workspace-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.workspace-list{display:flex;flex-direction:column;gap:8px}.workspace-row{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--chip);border-radius:8px;padding:11px 12px}.workspace-row .title{font-weight:750}.workspace-row .meta{font-size:12px;color:var(--sub);margin-top:3px}.amount{font-weight:800;white-space:nowrap}.status-pill{padding:4px 8px;border-radius:99px;background:var(--chip);font-size:11px;font-weight:700;white-space:nowrap}.status-pill.pending{background:rgba(234,179,8,.16)}.empty-state,.empty{padding:18px;text-align:center;color:var(--sub)}.route-badge{display:inline-block;padding:3px 7px;border-radius:99px;background:var(--brand);color:#fff;font-size:10px;font-weight:700}.permission-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.permission-card{border:1px solid var(--line);border-radius:9px;padding:12px}.permission-card h4{margin:0 0 8px}.checkline{display:flex;gap:8px;align-items:center;font-size:13px;margin:7px 0}.inline-actions{display:flex;gap:8px;flex-wrap:wrap}.danger{color:var(--bad)}
+  @media(max-width:760px){.workspace-grid{grid-template-columns:repeat(2,1fr)}.workspace-two,.permission-grid{grid-template-columns:1fr}.workspace-head{flex-direction:column}.workspace-row{align-items:flex-start}.amount{font-size:13px}}
+
+  /* ---------- LOGIN SCREEN ---------- */
+  #loginScreen{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;
+    background:
+      radial-gradient(900px 500px at 15% 10%, rgba(255,255,255,.14), transparent 60%),
+      radial-gradient(700px 500px at 90% 85%, rgba(13,95,192,.45), transparent 60%),
+      linear-gradient(160deg,#0A3675 0%,#114B9F 55%,#0d5fc0 100%);}
+  #loginScreen.hidden{display:none;}
+  .login-card{background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(4,25,64,.45);padding:34px 30px 26px;width:100%;max-width:380px;text-align:center;}
+  .login-brand{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:20px;}
+  .login-drop{width:52px;height:52px;border-radius:15px;background:#114B9F;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(17,75,159,.35);}
+  .login-wordmark{font-size:23px;font-weight:800;color:#0A3675;letter-spacing:.2px;}
+  .login-wordmark span{color:#F40000;}
+  .login-tag{font-size:11px;font-weight:700;letter-spacing:2.2px;color:#6b7a90;margin-top:-4px;}
+  .login-card label{display:block;text-align:left;font-size:12px;font-weight:700;color:#415062;margin:12px 0 5px;}
+  .login-card input{width:100%;box-sizing:border-box;border:1px solid #d4dce6;border-radius:9px;padding:11px 12px;font-size:15px;background:#f8fafc;color:#12233d;}
+  .login-card input:focus{outline:none;border-color:#114B9F;background:#fff;box-shadow:0 0 0 3px rgba(17,75,159,.15);}
+  #loginBtn{width:100%;margin-top:18px;border:none;border-radius:9px;padding:12px;font-size:15px;font-weight:800;color:#fff;background:#114B9F;cursor:pointer;}
+  #loginBtn:hover{background:#0d3f88;}
+  #loginBtn:disabled{opacity:.6;cursor:default;}
+  #loginError{min-height:18px;margin-top:10px;font-size:13px;font-weight:600;color:#a62b32;}
+  .login-foot{margin-top:18px;font-size:11px;color:#8a97a8;}
+  .user-chip{font-weight:700;color:var(--ink);}
+  body:not(.is-owner) [data-nav="accounts"]{display:none;}
+  body:not(.is-owner) #previewRoles{display:none;}
+</style>
+</head>
+<body>
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-drop"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M12 2.2C12 2.2 5.4 10.1 5.4 14.7a6.6 6.6 0 0 0 13.2 0C18.6 10.1 12 2.2 12 2.2Z" fill="#fff"/></svg></div>
+      <div class="login-wordmark">Vintage <span>Cool</span></div>
+      <div class="login-tag">STAFF PORTAL</div>
+    </div>
+    <label for="loginUser">Username</label>
+    <input id="loginUser" type="text" autocomplete="username" placeholder="Your username">
+    <label for="loginPin">PIN</label>
+    <input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Your PIN">
+    <button id="loginBtn" type="button">Sign in</button>
+    <div id="loginError"></div>
+    <div class="login-foot">Askpro Hub Ltd · Ho, Volta Region · Staff access only</div>
+  </div>
+</div>
+<div class="app-shell">
+  <aside class="side-nav" aria-label="Main navigation">
+    <div class="brand-lockup">
+      <div class="brand-name">💧 Vintage Cool</div>
+      <div class="brand-product">HUB</div>
+    </div>
+    <nav class="nav-group" id="desktopNav">
+      <button class="nav-item active" data-nav="dashboard"><span class="nav-icon">⌂</span><span>Dashboard</span></button>
+      <button class="nav-item" data-nav="trips"><span class="nav-icon">▣</span><span>Trips</span></button>
+      <button class="nav-item" data-nav="routes"><span class="nav-icon">↗</span><span>Routes</span></button>
+      <button class="nav-item" data-nav="sales"><span class="nav-icon">▤</span><span>Sales</span></button>
+      <button class="nav-item" data-nav="customers"><span class="nav-icon">♙</span><span>Customers</span></button>
+      <button class="nav-item" data-nav="credit"><span class="nav-icon">₵</span><span>Credit</span></button>
+      <button class="nav-item" data-nav="stock"><span class="nav-icon">□</span><span>Stock</span></button>
+      <button class="nav-item" data-nav="money"><span class="nav-icon">₵</span><span>Money</span></button>
+      <button class="nav-item" data-nav="employees"><span class="nav-icon">♟</span><span>Employees</span></button>
+      <button class="nav-item" data-nav="reports"><span class="nav-icon">▥</span><span>Reports</span></button>
+      <button class="nav-item" data-nav="accounts"><span class="nav-icon">✦</span><span>Accounts</span></button>
+    </nav>
+    <div class="nav-bottom">
+      <button class="nav-item" data-nav="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
+    </div>
+  </aside>
+
+  <div class="app-content">
+    <header>
+      <div>
+        <h1>💧 Vintage Cool Hub</h1>
+        <div class="sub" id="dateLabel">Business Operations &amp; Sales Management</div>
+      </div>
+      <div class="role-area">
+        <div class="sub user-chip" id="userChip">—</div>
+        <div class="roles" id="previewRoles">
+          <button class="role-btn" data-role="employee">Employee</button>
+          <button class="role-btn" data-role="manager">Manager</button>
+          <button class="role-btn active" data-role="cousin">Owner</button>
+        </div>
+        <button class="role-btn" id="logoutBtn" type="button">Log out</button>
+      </div>
+    </header>
+
+    <main>
+  <div class="card" style="padding:10px 14px;">
+    <div class="flexrow">
+      <span class="small">Viewing day</span>
+      <input type="date" id="dateInput" style="width:auto; padding:6px 8px; font-size:13px;">
+    </div>
+  </div>
+
+  <div id="view-dashboard"></div>
+  <div id="view-employee" style="display:none;"></div>
+  <div id="view-manager" style="display:none;"></div>
+  <div id="view-cousin" style="display:none;"></div>
+  <div id="view-workspace" style="display:none;"></div>
+</main>
+
+    <nav class="mobile-bottom-nav" id="mobileNav" aria-label="Mobile navigation">
+      <button class="nav-item active" data-nav="dashboard"><span class="nav-icon">⌂</span><span>Home</span></button>
+      <button class="nav-item" data-nav="trips"><span class="nav-icon">▣</span><span>Trips</span></button>
+      <button class="nav-item" data-nav="routes"><span class="nav-icon">↗</span><span>Routes</span></button>
+      <button class="nav-item" data-nav="sales"><span class="nav-icon">▤</span><span>Sales</span></button>
+      <button class="nav-item" data-nav="customers"><span class="nav-icon">♙</span><span>Customers</span></button>
+      <button class="nav-item" data-nav="credit"><span class="nav-icon">₵</span><span>Credit</span></button>
+      <button class="nav-item" data-nav="stock"><span class="nav-icon">□</span><span>Stock</span></button>
+      <button class="nav-item" data-nav="money"><span class="nav-icon">₵</span><span>Money</span></button>
+      <button class="nav-item" data-nav="employees"><span class="nav-icon">♟</span><span>Employees</span></button>
+      <button class="nav-item" data-nav="reports"><span class="nav-icon">▥</span><span>Reports</span></button>
+      <button class="nav-item" data-nav="accounts"><span class="nav-icon">✦</span><span>Accounts</span></button>
+      <button class="nav-item" data-nav="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
+    </nav>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- DATA MODEL ----------
+   days/{date}/employees/{empId}   one doc PER EMPLOYEE — load & return status.
+                                    empId = slugified employee name, so two
+                                    employees logging the same day never
+                                    overwrite each other.
+   days/{date}/sales               all sale entries for the day, each tagged
+                                    with employeeName so totals can be grouped
+                                    per employee on the client.
+------------------------------------------------------------------------- */
+
+let db = null;
+let currentDate = todayStr();
+let unsubEmployees = null, unsubSales = null, unsubRoster = null;
+let employeesData = []; // [{id, employeeName, bagsLoaded, loadStatus, ...}]
+let customersData = [];
+let creditData = [];
+let paymentData = [];
+let salesData = [];     // [{bags, amount, employeeName, ...}]
+let rosterData = [];    // [{id, name, active}] — the owner-managed employee list, persists across days
+let employeeSelPrice = null, employeeSelPay = null;
+let lastLoggedSale = null;
+let employeeError = null;
+let managerError = null;
+let ownerTabId = "all"; // "all" or an employee id
+let stockData = []; // warehouse stock transactions
+let stockOpening = null;
+let moneySearchDate = null;
+let reportView = "daily";
+let tripsData = [];
+let routesData = [];
+let appSettings = {prices:[7,7.5,8], companyName:"Vintage Cool Natural Mineral Water"};
+
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function fmtDateLabel(str){
+  const d = new Date(str+"T00:00:00");
+  return d.toLocaleDateString(undefined,{weekday:"long", month:"short", day:"numeric"});
+}
+function money(n){ return "GHS " + (Math.round(n*100)/100).toLocaleString(); }
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+function escapeHtml(str){
+  const d = document.createElement("div"); d.textContent = str||""; return d.innerHTML;
+}
+function slugify(name){
+  return (name||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-+|-+$)/g,"") || "employee";
+}
+function getSavedEmployeeId(){
+  try{ return localStorage.getItem("wt_employeeId") || ""; }catch(e){ return ""; }
+}
+function saveEmployeeId(id){
+  try{ localStorage.setItem("wt_employeeId", id); }catch(e){}
+}
+// 10-second Undo toast (locked spec safeguard)
+function showUndoToast(msg, onUndo){
+  const t = document.getElementById("toast");
+  t.innerHTML = "";
+  const span = document.createElement("span");
+  span.textContent = msg;
+  const btn = document.createElement("button");
+  btn.textContent = "Undo";
+  btn.style.cssText = "margin-left:10px;padding:4px 12px;border:none;border-radius:8px;background:#fff;color:#172033;font-weight:800;cursor:pointer;font-size:13px;";
+  btn.addEventListener("click", ()=>{
+    clearTimeout(showUndoToast._t);
+    t.classList.remove("show");
+    onUndo();
+  });
+  t.appendChild(span); t.appendChild(btn);
+  t.classList.add("show");
+  clearTimeout(showUndoToast._t);
+  showUndoToast._t = setTimeout(()=>t.classList.remove("show"), 10000);
+}
+// 60s idle auto-lock (locked spec safeguard — kills pocket taps)
+(function(){
+  const LOCK_MS = 60000;
+  let lockTimer = null;
+  function lockOverlay(){
+    let ov = document.getElementById("idleLockOverlay");
+    if(!ov){
+      ov = document.createElement("div");
+      ov.id = "idleLockOverlay";
+      ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:#0A3675;color:#fff;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px;touch-action:manipulation;user-select:none;";
+      ov.innerHTML = "<div style='font-size:44px'>🔒</div><div style='font-size:22px;font-weight:800;margin-top:10px'>Vintage Cool</div><div style='margin-top:6px;opacity:.85;font-size:14px'>Locked — tap anywhere to resume</div>";
+      ov.addEventListener("pointerdown", (e)=>{ e.stopPropagation(); ov.style.display = "none"; resetLockTimer(); });
+      document.body.appendChild(ov);
+    }
+    return ov;
+  }
+  function resetLockTimer(){
+    clearTimeout(lockTimer);
+    lockTimer = setTimeout(()=>{ lockOverlay().style.display = "flex"; }, LOCK_MS);
+  }
+  ["pointerdown","keydown","touchstart","scroll"].forEach(ev=>window.addEventListener(ev, resetLockTimer, {passive:true}));
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", resetLockTimer); else resetLockTimer();
+})();
+function anyNegative(...vals){
+  return vals.some(v => typeof v==="number" && !isNaN(v) && v<0);
+}
+function describeDbError(e){
+  const code = e && e.code;
+  if(code==="invalid_argument") return "Not saved — this device doesn't have edit access to this page yet. Ask the owner to add you via the Share button (Contributor or above).";
+  if(code==="resource_exhausted") return "Too many updates at once — wait a few seconds and try again.";
+  if(code==="quota_exceeded") return "Storage limit reached for this app — contact the owner.";
+  if(code==="unavailable") return "Connection problem — check your data/network and try again.";
+  if(code==="revoked") return "Your access to this page was removed.";
+  return "Not saved — something went wrong. Try again.";
+}
+
+
+/* ===== Supabase adapter (Firestore-style shim) — injected by _build_v3.py ===== */
+const SUPA_URL = "https://enqmncwfubzoxlsbpjrl.supabase.co";
+const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVucW1uY3dmdWJ6b3hsc2JwanJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwNzcwNjQsImV4cCI6MjEwNjY1MzA2NH0.BTR5pz_Vkb4rPWR1F6DSbBSNFcfrOulIdmOeVNIEsYo";
+const TABLE_MAP = {
+  roster:"roster", routes:"routes", trips:"trips",
+  stockTransactions:"stock_transactions", customers:"customers",
+  creditTransactions:"credit_transactions", customerPayments:"customer_payments",
+  settings:"settings", users:"users"
+};
+function sbHeaders(prefer){
+  const h = { apikey:SUPA_KEY, Authorization:"Bearer "+SUPA_KEY, "Content-Type":"application/json" };
+  if(prefer) h["Prefer"] = prefer;
+  return h;
+}
+async function sbReq(path, opts){
+  opts = opts||{};
+  const res = await fetch(SUPA_URL+"/rest/v1/"+path, {
+    method: opts.method||"GET",
+    headers: sbHeaders(opts.prefer),
+    body: opts.body?JSON.stringify(opts.body):undefined
+  });
+  if(!res.ok){
+    const code = res.status===409 ? "conflict" : (res.status>=500||res.status===0) ? "unavailable" : "invalid_argument";
+    throw { code:code };
+  }
+  const t = await res.text();
+  return t ? JSON.parse(t) : null;
+}
+function parseDbPath(path){
+  const segs = String(path).split("/");
+  if(segs[0]==="days"){
+    return { table: segs[2]==="employees" ? "day_employees" : "day_sales", day:segs[1], id: segs[3]||null };
+  }
+  return { table: TABLE_MAP[segs[0]] || segs[0], day:null, id: segs[1]||null };
+}
+function buildSnap(rows, ob, lim){
+  let docs = (rows||[]).map(r=>({ id:r.id, data:()=>r }));
+  if(ob){ const k=ob[0], dir=ob[1]==="desc"?-1:1; docs.sort((a,b)=>{ const va=a.data()[k]||0, vb=b.data()[k]||0; return (va<vb?-1:va>vb?1:0)*dir; }); }
+  if(lim) docs = docs.slice(0, lim);
+  return { docs:docs };
+}
+function startPolling(fn, ms){
+  fn();
+  const iv = setInterval(fn, ms||4000);
+  return ()=>clearInterval(iv);
+}
+function SupaDb(){
+  this.collection = function(path){
+    const loc = parseDbPath(path);
+    const q = { _ob:null, _lim:null };
+    q.orderBy = function(f,dir){ q._ob=[f,dir]; return q; };
+    q.limit = function(n){ q._lim=n; return q; };
+    q.onSnapshot = function(cb, errCb){
+      let last = "";
+      return startPolling(async ()=>{
+        try{
+          const filter = loc.day ? ("?day=eq."+encodeURIComponent(loc.day)+"&select=*") : "?select=*";
+          const rows = await sbReq(loc.table+filter);
+          const j = JSON.stringify(rows||[]);
+          if(j===last) return;
+          last = j;
+          cb(buildSnap(rows, q._ob, q._lim));
+        }catch(e){ if(errCb) errCb(e); }
+      });
+    };
+    q.add = async function(obj){
+      const body = Object.assign({}, obj, { id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(36).slice(2,8)) });
+      if(loc.day) body.day = loc.day;
+      await sbReq(loc.table, { method:"POST", prefer:"return=minimal", body:body });
+      return { id: body.id };
+    };
+    return q;
+  };
+  this.doc = function(path){
+    const loc = parseDbPath(path);
+    const filt = loc.day ? ("id=eq."+encodeURIComponent(loc.id)+"&day=eq."+encodeURIComponent(loc.day)) : ("id=eq."+encodeURIComponent(loc.id));
+    return {
+      set: async function(obj){
+        const body = Object.assign({}, obj, { id: loc.id });
+        if(loc.day) body.day = loc.day;
+        await sbReq(loc.table+"?on_conflict=id", { method:"POST", prefer:"resolution=merge-duplicates", body:body });
+      },
+      update: async function(obj){
+        await sbReq(loc.table+"?"+filt, { method:"PATCH", prefer:"return=minimal", body:obj });
+      },
+      delete: async function(){
+        await sbReq(loc.table+"?"+filt, { method:"DELETE", prefer:"return=minimal" });
+      },
+      onSnapshot: function(cb, errCb){
+        let last = "";
+        return startPolling(async ()=>{
+          try{
+            const rows = await sbReq(loc.table+"?"+filt+"&select=*");
+            const j = JSON.stringify(rows||[]);
+            if(j===last) return;
+            last = j;
+            const r = (rows&&rows[0])||null;
+            cb({ exists: !!r, data:()=>r||{} });
+          }catch(e){ if(errCb) errCb(e); }
+        });
+      }
+    };
+  };
+  return this;
+}
+function createSupaDb(){ return new SupaDb(); }
+/* ===== end adapter ===== */
+
+async function initDb(){
+  try{ db = createSupaDb(); }catch(e){ db = null; showToast("Database connection failed — reload the page."); }
+  document.getElementById("dateInput").value = currentDate;
+  document.getElementById("dateLabel").textContent = "Business Operations & Sales Management";
+  if(db){
+    unsubRoster = db.collection("roster").onSnapshot(snap=>{
+      rosterData = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      renderAll();
+    }, err=>{ console.error(err); });
+  }
+  if(db){ db.doc("settings/general").onSnapshot(snap=>{ if(snap.exists) appSettings={...appSettings,...snap.data()}; renderAll(); }, err=>console.error(err)); }
+  if(db){ db.collection("users").limit(500).onSnapshot(snap=>{ usersCache=snap.docs.map(d=>({id:d.id,...d.data()})); if(activeNav==="accounts") renderWorkspace(); }, err=>console.error(err)); }
+  subscribeDay(currentDate);
+}
+
+function subscribeDay(dateStr){
+  if(unsubEmployees) unsubEmployees();
+  if(unsubSales) unsubSales();
+  employeesData = []; salesData = []; ownerTabId = "all";
+  if(!db){ renderAll(); return; }
+
+  unsubEmployees = db.collection(`days/${dateStr}/employees`).onSnapshot(snap=>{
+    employeesData = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, err=>{ console.error(err); });
+
+  unsubSales = db.collection(`days/${dateStr}/sales`).orderBy("ts","desc").limit(500).onSnapshot(snap=>{
+    salesData = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, err=>{ console.error(err); });
+
+  if(window._unsubCustomers) window._unsubCustomers();
+  if(window._unsubCredits) window._unsubCredits();
+  if(window._unsubPayments) window._unsubPayments();
+  if(window._unsubStock) window._unsubStock();
+  if(window._unsubTrips) window._unsubTrips();
+  if(window._unsubRoutes) window._unsubRoutes();
+  window._unsubTrips = db.collection("trips").limit(2000).onSnapshot(snap=>{ tripsData=snap.docs.map(d=>({id:d.id,...d.data()})); renderAll(); }, err=>console.error(err));
+  window._unsubRoutes = db.collection("routes").limit(500).onSnapshot(snap=>{ routesData=snap.docs.map(d=>({id:d.id,...d.data()})); renderAll(); }, err=>console.error(err));
+  window._unsubStock = db.collection("stockTransactions").limit(2000).onSnapshot(snap=>{
+    stockData = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, err=>{ console.error(err); });
+  window._unsubCustomers = db.collection("customers").limit(1000).onSnapshot(snap=>{
+    customersData = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, err=>{ console.error(err); });
+  window._unsubCredits = db.collection("creditTransactions").limit(1000).onSnapshot(snap=>{
+    creditData = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, err=>{ console.error(err); });
+  window._unsubPayments = db.collection("customerPayments").limit(1000).onSnapshot(snap=>{
+    paymentData = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, err=>{ console.error(err); });
+}
+
+document.getElementById("dateInput").addEventListener("change", (e)=>{
+  currentDate = e.target.value || todayStr();
+  document.getElementById("dateLabel").textContent = "Business Operations & Sales Management";
+  subscribeDay(currentDate);
+});
+
+
+// ---------- HUB NAVIGATION ----------
+let activeNav = "dashboard";
+const navLabels = {
+  dashboard:"Dashboard", trips:"Trips", routes:"Routes", sales:"Sales", customers:"Customers",
+  credit:"Credit", stock:"Stock", money:"Money", employees:"Employees", reports:"Reports", settings:"Settings", accounts:"Accounts"
+};
+function applyActiveWorkspace(){
+  const role=currentRole();
+  const map={dashboard:'view-dashboard',employee:'view-employee',manager:'view-manager',cousin:'view-cousin'};
+  const moduleNav=['trips','routes','sales','customers','credit','stock','money','employees','reports','settings','accounts'];
+  const isModule=moduleNav.includes(activeNav);
+  document.getElementById('view-dashboard').style.display=activeNav==='dashboard'?'block':'none';
+  document.getElementById('view-workspace').style.display=isModule?'block':'none';
+  document.getElementById('view-employee').style.display=(!isModule&&activeNav!=='dashboard'&&role==='employee')?'block':'none';
+  document.getElementById('view-manager').style.display=(!isModule&&activeNav!=='dashboard'&&role==='manager')?'block':'none';
+  document.getElementById('view-cousin').style.display=(!isModule&&activeNav!=='dashboard'&&role==='cousin')?'block':'none';
+}
+function setActiveNav(key){
+  if(key==='accounts' && !(currentUser&&currentUser.role==='cousin')){ showToast("Accounts is owner-only."); return; }
+  activeNav=key;
+  document.querySelectorAll('[data-nav]').forEach(btn=>btn.classList.toggle('active',btn.dataset.nav===key));
+  applyActiveWorkspace();
+  if(key==='dashboard') window.scrollTo({top:0,behavior:'smooth'});
+  else if(['trips','routes','sales','customers','credit','stock','money','employees','reports','settings','accounts'].includes(key)){ renderWorkspace(); window.scrollTo({top:0,behavior:'smooth'}); }
+}
+function goToRoleWorkspace(role){
+  if(currentUser&&currentUser.role==='cousin') ownerPreview=role;
+  document.querySelectorAll('.role-btn[data-role]').forEach(b=>b.classList.toggle('active',b.dataset.role===role));
+  applyActiveWorkspace();
+  renderDashboard();
+}
+document.querySelectorAll('[data-nav]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    setActiveNav(btn.dataset.nav);
+    if(btn.closest('#mobileNav')) btn.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+  });
+});
+
+document.querySelectorAll(".role-btn[data-role]").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    if(!currentUser||currentUser.role!=="cousin"){ showToast("Only the owner can switch views."); return; }
+    ownerPreview=btn.dataset.role;
+    document.querySelectorAll(".role-btn[data-role]").forEach(b=>b.classList.toggle("active",b.dataset.role===ownerPreview));
+    applyActiveWorkspace();
+    renderDashboard();
+  });
+});
+
+// ---------- shared helpers ----------
+function computeTotalsFor(record, sales){
+  let bagsSold=0, cash=0, momo=0, credit=0, free=0, damaged=0;
+  sales.forEach(s=>{
+    bagsSold += s.bags||0;
+    free += s.freeBags||0;
+    damaged += s.damagedBags||0;
+    if(s.paymentType==="cash") cash += s.amount||0;
+    else if(s.paymentType==="momo") momo += s.amount||0;
+    else if(s.paymentType==="credit") credit += s.amount||0;
+  });
+  const bagsLoaded = record?.bagsLoaded ?? null;
+  const bagsRemaining = (bagsLoaded!=null) ? (bagsLoaded - bagsSold - free) : null;
+  return {bagsSold, cash, momo, credit, free, damaged, bagsLoaded, bagsRemaining};
+}
+// Union of everyone with a load/return record AND anyone who has only sales logged so far
+function getEmployeeList(){
+  const map = new Map();
+  employeesData.forEach(e=>{
+    map.set(e.id, {id:e.id, name: e.employeeName || e.id, record: e});
+  });
+  salesData.forEach(s=>{
+    if(!s.employeeName) return;
+    const id = slugify(s.employeeName);
+    if(!map.has(id)) map.set(id, {id, name: s.employeeName, record: null});
+  });
+  return Array.from(map.values()).sort((a,b)=>a.name.localeCompare(b.name));
+}
+function salesFor(empId){
+  return salesData.filter(s => slugify(s.employeeName||"") === empId);
+}
+function recordFor(empId){
+  return employeesData.find(e=>e.id===empId) || null;
+}
+
+// ---------- EMPLOYEE VIEW ----------
+function renderEmployee(){
+  const el = document.getElementById("view-employee");
+
+  const selectEl = document.getElementById("employeeSelect");
+  const selectedId = selectEl ? selectEl.value : (rosterData.find(e=>e.id===getSavedEmployeeId()) ? getSavedEmployeeId() : "");
+  const myRoster = rosterData.find(e=>e.id===selectedId) || null;
+  const employeeName = myRoster ? myRoster.name : "";
+  const empId = selectedId;
+  const myRecord = empId ? recordFor(empId) : null;
+  const mySales = empId ? salesFor(empId) : [];
+  const t = computeTotalsFor(myRecord, mySales);
+
+  const loadPending = myRecord && myRecord.loadStatus==="pending";
+  const noLoad = !myRecord || myRecord.bagsLoaded==null;
+
+  let html = "";
+
+  html += `
+  <div class="who-bar">
+    <span class="lbl">EMPLOYEE</span>
+    <select id="employeeSelect" style="flex:1; background:transparent; border:none; padding:4px 0; font-size:14px; font-weight:700; color:var(--ink);">
+      <option value="">Select your name</option>
+      ${rosterData.filter(e=>e.active!==false).map(e=>`<option value="${e.id}" ${e.id===selectedId?"selected":""}>${escapeHtml(e.name)}</option>`).join("")}
+    </select>
+  </div>`;
+
+  if(rosterData.length===0){
+    html += `<div class="banner warn">⚠️ No employees have been added yet. Ask the manager or owner to add you under Employees.</div>`;
+    el.innerHTML = html;
+    return;
+  }
+  if(!empId){
+    html += `<div class="banner warn">⚠️ Select your name above to start logging.</div>`;
+    el.innerHTML = html;
+    const sel = document.getElementById("employeeSelect");
+    sel.addEventListener("change", ()=>{ saveEmployeeId(sel.value); preserveThenRender("view-employee", renderEmployee); });
+    return;
+  }
+
+  html += renderCountdown(t);
+
+  if(employeeError){
+    html += `<div class="banner bad">❌ ${employeeError} <span id="dismissErr" style="text-decoration:underline; cursor:pointer; margin-left:6px;">Dismiss</span></div>`;
+  }
+
+  if(lastLoggedSale){
+    const s = lastLoggedSale;
+    html += `
+    <div class="confirm-card">
+      <div class="sub">✅ Entry #${s.logNumber} saved</div>
+      <div class="num">${s.bags} bags — ${money(s.amount)}</div>
+      <div class="details">${s.pricePerBag}/bag · ${s.paymentType}${s.customerName?" · "+escapeHtml(s.customerName):""}</div>
+    </div>`;
+  }
+
+  if(noLoad){
+    html += `
+    <div class="banner warn">⚠️ No truck load logged yet for today.</div>
+    <div class="card">
+      <h2>Manager not around? Log the load yourself</h2>
+      <label>Bags loaded onto truck</label>
+      <input type="number" id="selfBags" placeholder="e.g. 500" inputmode="numeric" min="0">
+      <button class="primary warn" id="selfLoadBtn">Log load</button>
+    </div>`;
+  } else if(loadPending){
+    html += `<div class="banner warn">⏳ Load of ${t.bagsLoaded} bags logged, waiting for manager to confirm.</div>`;
+  } else {
+    html += `<div class="banner good">✅ Truck loaded with ${t.bagsLoaded} bags today — confirmed by manager.</div>`;
+  }
+
+  html += `
+  <div class="card">
+    <h2>Today so far</h2>
+    <div class="stat-grid">
+      <div class="stat"><div class="n">${t.bagsSold}</div><div class="l">bags sold</div></div>
+      <div class="stat"><div class="n">${t.bagsRemaining ?? "–"}</div><div class="l">bags left (est.)</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Log a sale</h2>
+    <label>Bags sold</label>
+    <input type="number" id="saleBags" inputmode="numeric" placeholder="e.g. 10" min="0">
+
+    <label>Price per bag</label>
+    <div class="pricebtns" id="priceBtns">
+      <button data-p="7">7.0</button>
+      <button data-p="7.5">7.5</button>
+      <button data-p="8">8.0</button>
+    </div>
+
+    <label>Payment method</label>
+    <div class="paybtns" id="payBtns">
+      <button data-pay="cash">Cash</button>
+      <button data-pay="momo">MoMo</button>
+      <button data-pay="credit">Credit</button>
+    </div>
+
+    <label>Customer name (optional, needed for credit)</label>
+    <input type="text" id="saleCustomer" placeholder="e.g. Madam Akosua">
+
+    <div class="row">
+      <div>
+        <label>Free bags given</label>
+        <input type="number" id="saleFree" inputmode="numeric" placeholder="0" min="0">
+      </div>
+      <div>
+        <label>Damaged bags returned</label>
+        <input type="number" id="saleDamaged" inputmode="numeric" placeholder="0" min="0">
+      </div>
+    </div>
+
+    <div class="small" id="saleTotalPreview" style="margin-top:10px;"></div>
+    <button class="primary" id="logSaleBtn">Log sale</button>
+  </div>
+
+  <div class="card">
+    <h2>My recent entries</h2>
+    ${renderFeed(mySales.slice(0,8))}
+  </div>
+
+  <div class="card">
+    <h2>End of route — return unsold bags</h2>
+    <label>Bags returning to office</label>
+    <input type="number" id="retBags" inputmode="numeric" placeholder="e.g. ${t.bagsRemaining ?? ''}" min="0">
+    <label>Cash on hand</label>
+    <input type="number" id="retCash" inputmode="numeric" placeholder="e.g. ${t.cash}" min="0">
+    <label>MoMo received (confirm)</label>
+    <input type="number" id="retMomo" inputmode="numeric" placeholder="e.g. ${t.momo}" min="0">
+    <button class="primary warn" id="selfReturnBtn">Log return</button>
+  </div>
+  `;
+
+  el.innerHTML = html;
+
+  const dismissErr = document.getElementById("dismissErr");
+  if(dismissErr) dismissErr.addEventListener("click", ()=>{ employeeError = null; preserveThenRender("view-employee", renderEmployee); });
+
+  // re-render live if they switch who they are on this device
+  document.getElementById("employeeSelect").addEventListener("change", (e)=>{
+    saveEmployeeId(e.target.value);
+    preserveThenRender("view-employee", renderEmployee);
+  });
+
+  // wire price buttons
+  el.querySelectorAll("#priceBtns button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      el.querySelectorAll("#priceBtns button").forEach(x=>x.classList.remove("sel"));
+      b.classList.add("sel");
+      employeeSelPrice = parseFloat(b.dataset.p);
+      updateSalePreview();
+    });
+  });
+  el.querySelectorAll("#payBtns button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      el.querySelectorAll("#payBtns button").forEach(x=>x.classList.remove("sel"));
+      b.classList.add("sel");
+      employeeSelPay = b.dataset.pay;
+      updateSalePreview();
+    });
+  });
+  document.getElementById("saleBags").addEventListener("input", updateSalePreview);
+  function updateSalePreview(){
+    const bags = parseFloat(document.getElementById("saleBags").value)||0;
+    const total = bags * (employeeSelPrice||0);
+    document.getElementById("saleTotalPreview").textContent =
+      employeeSelPrice ? `Total: ${money(total)}` : "";
+  }
+
+  document.getElementById("logSaleBtn").addEventListener("click", async ()=>{
+    const bags = parseFloat(document.getElementById("saleBags").value);
+    const free = parseFloat(document.getElementById("saleFree").value)||0;
+    const damaged = parseFloat(document.getElementById("saleDamaged").value)||0;
+    const customer = document.getElementById("saleCustomer").value.trim();
+    if(!bags || bags<=0){ showToast("Enter number of bags sold"); return; }
+    if(anyNegative(free, damaged)){ showToast("Free/damaged bags can't be negative"); return; }
+    if(!employeeSelPrice){ showToast("Select a price"); return; }
+    if(!employeeSelPay){ showToast("Select payment method"); return; }
+    if(employeeSelPay==="credit" && !customer){ showToast("Customer name needed for credit"); return; }
+    const amount = bags * employeeSelPrice;
+    if(!db){ showToast("No live sync in this preview"); return; }
+    const record = {
+      bags, pricePerBag: employeeSelPrice, amount,
+      paymentType: employeeSelPay, customerName: customer || null,
+      freeBags: free, damagedBags: damaged,
+      employeeName, ts: Date.now()
+    };
+    if(!confirm(`Log this sale?\n\n${bags} bags × ${money(employeeSelPrice)} = ${money(amount)} · ${employeeSelPay==='cash'?'Cash':employeeSelPay==='momo'?'MoMo':'Credit'}${customer?' · '+customer:''}`)) return;
+    try{
+      const added = await db.collection(`days/${currentDate}/sales`).add(record);
+      employeeError = null;
+      lastLoggedSale = {...record, logNumber: salesFor(empId).length + 1};
+      if(!salesData.find(s=>s.ts===record.ts)) salesData = [record, ...salesData];
+      showUndoToast(`Saved — entry #${lastLoggedSale.logNumber}`, async()=>{
+        try{ await db.doc(`days/${currentDate}/sales/${added.id}`).delete(); showToast('Sale undone'); }
+        catch(err){ showToast(describeDbError(err)); }
+      });
+      document.getElementById("saleBags").value="";
+      document.getElementById("saleCustomer").value="";
+      document.getElementById("saleFree").value="";
+      document.getElementById("saleDamaged").value="";
+      employeeSelPrice=null; employeeSelPay=null;
+      renderEmployee();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }catch(e){ employeeError = describeDbError(e); preserveThenRender("view-employee", renderEmployee); }
+  });
+
+  const selfLoadBtn = document.getElementById("selfLoadBtn");
+  if(selfLoadBtn){
+    selfLoadBtn.addEventListener("click", async ()=>{
+      const bags = parseFloat(document.getElementById("selfBags").value);
+      if(!bags || bags<=0){ showToast("Enter bags loaded"); return; }
+      if(!db){ showToast("No live sync in this preview"); return; }
+      try{
+        await db.doc(`days/${currentDate}/employees/${empId}`).set({
+          employeeName, bagsLoaded: bags, loadStatus:"pending",
+          loadReportedBy: employeeName, loadReportedAt: Date.now()
+        });
+        employeeError = null;
+        showToast("Load logged, pending manager confirmation");
+      }catch(e){ employeeError = describeDbError(e); preserveThenRender("view-employee", renderEmployee); }
+    });
+  }
+
+  const selfReturnBtn = document.getElementById("selfReturnBtn");
+  selfReturnBtn.addEventListener("click", async ()=>{
+    const bags = parseFloat(document.getElementById("retBags").value);
+    const cash = parseFloat(document.getElementById("retCash").value)||0;
+    const momo = parseFloat(document.getElementById("retMomo").value)||0;
+    if(bags==null || isNaN(bags)){ showToast("Enter bags returning"); return; }
+    if(anyNegative(bags, cash, momo)){ showToast("Bags, cash and momo can't be negative"); return; }
+    if(!db){ showToast("No live sync in this preview"); return; }
+    try{
+      await db.doc(`days/${currentDate}/employees/${empId}`).update({
+        bagsReturned: bags, cashReturned: cash, momoReturned: momo,
+        returnStatus:"pending", returnReportedBy: employeeName, returnReportedAt: Date.now()
+      });
+      employeeError = null;
+      showToast("Return logged, pending manager confirmation");
+    }catch(e){ employeeError = describeDbError(e); preserveThenRender("view-employee", renderEmployee); }
+  });
+}
+
+// ---------- MANAGER VIEW ----------
+function renderManager(){
+  const el = document.getElementById("view-manager");
+  const employees = getEmployeeList();
+  const allSalesTotal = computeTotalsFor(null, salesData);
+
+  let html = "";
+  html += `<div class="card"><h2>All trucks combined</h2>
+    <div class="stat-grid">
+      <div class="stat"><div class="n">${employees.length}</div><div class="l">employees active today</div></div>
+      <div class="stat"><div class="n">${allSalesTotal.bagsSold}</div><div class="l">total bags sold</div></div>
+    </div>
+  </div>`;
+
+  html += `<div class="card"><h2>Log an employee's load</h2>
+    <label>Employee</label>
+    <select id="mgrNewEmp" style="width:100%; padding:10px 11px; border-radius:6px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:15px;">
+      <option value="">Select employee</option>
+      ${rosterData.map(e=>`<option value="${e.id}">${escapeHtml(e.name)}</option>`).join("")}
+    </select>
+    ${rosterData.length===0 ? `<div class="small" style="margin-top:6px;">No employees in the roster yet — ask the owner to add them in the Owner tab.</div>` : ""}
+    <label>Bags loaded onto their truck</label>
+    <input type="number" id="mgrNewBags" inputmode="numeric" placeholder="e.g. 500" min="0">
+    <button class="primary" id="mgrAddLoadBtn">Log &amp; confirm load</button>
+  </div>`;
+
+  if(managerError){
+    html += `<div class="banner bad">❌ ${managerError} <span id="dismissMgrErr" style="text-decoration:underline; cursor:pointer; margin-left:6px;">Dismiss</span></div>`;
+  }
+
+  if(employees.length===0){
+    html += `<div class="card"><div class="empty">No employees have logged anything yet today</div></div>`;
+  }
+
+  employees.forEach(emp=>{
+    const record = emp.record;
+    const sales = salesFor(emp.id);
+    const t = computeTotalsFor(record, sales);
+    const expectedReturn = t.bagsRemaining;
+    const expectedCash = t.cash, expectedMomo = t.momo;
+
+    html += `<div class="emp-card">
+      <div class="emp-head"><span class="name">👤 ${escapeHtml(emp.name)}</span><span class="small">${t.bagsSold} bags sold</span></div>`;
+
+    // Load
+    if(!record || record.bagsLoaded==null){
+      html += `<div class="small">No load logged for ${escapeHtml(emp.name)} yet.</div>`;
+    } else if(record.loadStatus==="pending"){
+      html += `
+        <div class="flexrow"><span>Load: <b>${record.bagsLoaded} bags</b></span><span class="pill pending">pending</span></div>
+        <label>Confirm actual count</label>
+        <input type="number" id="mgrLoadConfirm-${emp.id}" value="${record.bagsLoaded}" inputmode="numeric" min="0">
+        <button class="primary" data-confirm-load="${emp.id}">Confirm load</button>`;
+    } else {
+      html += `<div class="flexrow"><span>Load: ${record.bagsLoaded} bags</span><span class="pill confirmed">confirmed</span></div>`;
+    }
+
+    html += `<div class="divider"></div>`;
+
+    // Return
+    if(!record || record.bagsReturned==null){
+      html += `<div class="small">Expected if route ended now: ${expectedReturn ?? "–"} bags, ${money(expectedCash)} cash, ${money(expectedMomo)} momo. No return logged yet.</div>`;
+    } else if(record.returnStatus==="pending"){
+      const bagDiff = record.bagsReturned - (expectedReturn ?? record.bagsReturned);
+      const cashDiff = record.cashReturned - expectedCash;
+      html += `
+        <div class="flexrow"><span>Return reported</span><span class="pill pending">pending</span></div>
+        <div class="small" style="margin-top:6px;">Reported: ${record.bagsReturned} bags, ${money(record.cashReturned)} cash, ${money(record.momoReturned)} momo</div>
+        <div class="small">Expected: ${expectedReturn ?? "–"} bags, ${money(expectedCash)} cash, ${money(expectedMomo)} momo</div>
+        ${Math.abs(bagDiff)>0 || Math.abs(cashDiff)>0 ? `<div class="banner bad" style="margin-top:8px;">⚠️ Discrepancy: ${bagDiff} bags, ${money(cashDiff)} cash</div>` : `<div class="banner info" style="margin-top:8px;">Matches sales log</div>`}
+        <label>Confirm final bags returned</label>
+        <input type="number" id="mgrRetConfirmBags-${emp.id}" value="${record.bagsReturned}" inputmode="numeric" min="0">
+        <label>Confirm final cash</label>
+        <input type="number" id="mgrRetConfirmCash-${emp.id}" value="${record.cashReturned}" inputmode="numeric" min="0">
+        <button class="primary" data-confirm-return="${emp.id}">Confirm return</button>`;
+    } else {
+      html += `<div class="flexrow"><span>${record.bagsReturned} bags, ${money(record.cashReturned)} cash, ${money(record.momoReturned)} momo</span><span class="pill confirmed">confirmed</span></div>`;
+    }
+
+    html += `</div>`;
+  });
+
+  html += `<div class="card"><h2>Today's sales log (all employees)</h2>${renderFeed(salesData)}</div>`;
+
+  if(employees.length>0){
+    html += `<div class="card">
+      <h2>⚠️ Delete test/mistaken data for this day</h2>
+      <div class="small" style="margin-bottom:8px;">Permanently deletes this employee's load, return and all sales for ${fmtDateLabel(currentDate)} only. Cannot be undone.</div>
+      <div class="mini-list">
+      ${employees.map(e=>`<div class="mini-row"><div class="mname">${escapeHtml(e.name)}</div><span class="small" data-wipe-emp="${e.id}" style="text-decoration:underline; cursor:pointer; color:var(--bad);">Delete this day's data</span></div>`).join("")}
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+
+  const dismissMgrErr = document.getElementById("dismissMgrErr");
+  if(dismissMgrErr) dismissMgrErr.addEventListener("click", ()=>{ managerError = null; preserveThenRender("view-manager", renderManager); });
+
+  el.querySelectorAll("[data-wipe-emp]").forEach(span=>{
+    span.addEventListener("click", async ()=>{
+      const id = span.dataset.wipeEmp;
+      const emp = getEmployeeList().find(e=>e.id===id);
+      const label = emp ? emp.name : id;
+      if(!confirm(`Delete all of ${label}'s data for ${fmtDateLabel(currentDate)}? This cannot be undone.`)) return;
+      if(!db) return;
+      try{
+        await db.doc(`days/${currentDate}/employees/${id}`).delete();
+        const theirSales = salesFor(id);
+        for(const s of theirSales){
+          await db.doc(`days/${currentDate}/sales/${s.id}`).delete();
+        }
+        showToast(`Deleted ${label}'s data for this day`);
+      }catch(e){ managerError = describeDbError(e); preserveThenRender("view-manager", renderManager); }
+    });
+  });
+
+  const mgrAddLoadBtn = document.getElementById("mgrAddLoadBtn");
+  if(mgrAddLoadBtn) mgrAddLoadBtn.addEventListener("click", async ()=>{
+    const id = document.getElementById("mgrNewEmp").value;
+    const bags = parseFloat(document.getElementById("mgrNewBags").value);
+    const emp = rosterData.find(e=>e.id===id);
+    if(!emp){ showToast("Select an employee from the list"); return; }
+    if(!bags || bags<=0){ showToast("Enter bags loaded"); return; }
+    if(!db){ showToast("No live sync in this preview"); return; }
+    try{
+      await db.doc(`days/${currentDate}/employees/${id}`).set({
+        employeeName: emp.name, bagsLoaded: bags, loadStatus:"confirmed",
+        loadReportedBy:"manager", loadConfirmedBy:"manager", loadConfirmedAt: Date.now()
+      });
+      managerError = null;
+      showToast(`Load confirmed for ${emp.name}`);
+    }catch(e){ managerError = describeDbError(e); preserveThenRender("view-manager", renderManager); }
+  });
+
+  el.querySelectorAll("[data-confirm-load]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      const id = btn.dataset.confirmLoad;
+      const bags = parseFloat(document.getElementById(`mgrLoadConfirm-${id}`).value);
+      if(anyNegative(bags)){ showToast("Bags can't be negative"); return; }
+      if(!db) return;
+      try{
+        await db.doc(`days/${currentDate}/employees/${id}`).update({
+          bagsLoaded: bags, loadStatus:"confirmed", loadConfirmedBy:"manager", loadConfirmedAt: Date.now()
+        });
+        managerError = null;
+        showToast("Load confirmed");
+      }catch(e){ managerError = describeDbError(e); preserveThenRender("view-manager", renderManager); }
+    });
+  });
+
+  el.querySelectorAll("[data-confirm-return]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      const id = btn.dataset.confirmReturn;
+      const bags = parseFloat(document.getElementById(`mgrRetConfirmBags-${id}`).value);
+      const cash = parseFloat(document.getElementById(`mgrRetConfirmCash-${id}`).value);
+      if(anyNegative(bags, cash)){ showToast("Bags and cash can't be negative"); return; }
+      if(!db) return;
+      try{
+        await db.doc(`days/${currentDate}/employees/${id}`).update({
+          bagsReturned: bags, cashReturned: cash,
+          returnStatus:"confirmed", returnConfirmedBy:"manager", returnConfirmedAt: Date.now()
+        });
+        managerError = null;
+        showToast("Return confirmed");
+      }catch(e){ managerError = describeDbError(e); preserveThenRender("view-manager", renderManager); }
+    });
+  });
+}
+
+// ---------- OWNER VIEW ----------
+function renderCousin(){
+  const el = document.getElementById("view-cousin");
+  const employees = getEmployeeList();
+
+  // keep the selected tab valid if that employee disappears from the list
+  if(ownerTabId!=="all" && !employees.find(e=>e.id===ownerTabId)) ownerTabId = "all";
+
+  let html = "";
+
+  // tab bar
+  html += `<div class="tabbar" id="ownerTabs">
+    <button class="tab-btn ${ownerTabId==='all'?'active':''}" data-tab="all">All (${employees.length})</button>
+    ${employees.map(e=>`<button class="tab-btn ${ownerTabId===e.id?'active':''}" data-tab="${e.id}">${escapeHtml(e.name)}</button>`).join("")}
+  </div>`;
+  if(employees.length>0) html += `<div class="swipe-hint">swipe left/right to switch employee</div>`;
+
+  if(ownerTabId==="all"){
+    const t = computeTotalsFor(null, salesData);
+    const pendingCount = employees.filter(e=>e.record && (e.record.loadStatus==="pending" || e.record.returnStatus==="pending")).length;
+
+    if(pendingCount>0){
+      html += `<div class="banner warn">⏳ ${pendingCount} employee${pendingCount>1?"s":""} with something awaiting manager confirmation</div>`;
+    }
+
+    html += `
+    <div class="card">
+      <h2>Live totals (all employees) — ${fmtDateLabel(currentDate)}</h2>
+      <div class="stat-grid">
+        <div class="stat"><div class="n">${t.bagsSold}</div><div class="l">bags sold</div></div>
+        <div class="stat"><div class="n">${employees.length}</div><div class="l">employees active</div></div>
+        <div class="stat"><div class="n">${money(t.cash)}</div><div class="l">cash collected</div></div>
+        <div class="stat"><div class="n">${money(t.momo)}</div><div class="l">momo collected</div></div>
+        <div class="stat"><div class="n">${money(t.credit)}</div><div class="l">given on credit</div></div>
+        <div class="stat"><div class="n">${t.free}</div><div class="l">free bags given</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Manage employees</h2>
+      <div class="mini-list">
+      ${rosterData.length===0 ? `<div class="empty">No employees added yet</div>` : rosterData.map(e=>`
+        <div class="mini-row">
+          <div class="mname">${escapeHtml(e.name)}</div>
+          <span class="small" data-remove-emp="${e.id}" style="text-decoration:underline; cursor:pointer;">Remove</span>
+        </div>`).join("")}
+      </div>
+      <label>Add new employee</label>
+      <input type="text" id="newEmpName" placeholder="Employee's full name">
+      <button class="primary" id="addEmpBtn">Add employee</button>
+    </div>
+
+    <div class="card">
+      <h2>By employee</h2>
+      <div class="mini-list">
+      ${employees.length===0 ? `<div class="empty">No employees active yet today</div>` : employees.map(emp=>{
+        const et = computeTotalsFor(emp.record, salesFor(emp.id));
+        const statusBit = emp.record
+          ? (emp.record.loadStatus==="pending" || emp.record.returnStatus==="pending" ? `<span class="pill pending" style="margin-left:6px;">pending</span>` : `<span class="pill confirmed" style="margin-left:6px;">confirmed</span>`)
+          : "";
+        return `<div class="mini-row" data-goto="${emp.id}">
+          <div>
+            <div class="mname">${escapeHtml(emp.name)}${statusBit}</div>
+            <div class="mstats">${et.bagsSold} sold · ${et.bagsRemaining ?? "–"} left · ${money(et.cash+et.momo)} collected</div>
+          </div>
+          <span class="marrow">›</span>
+        </div>`;
+      }).join("")}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Live activity (all employees)</h2>
+      ${renderFeed(salesData)}
+    </div>`;
+  } else {
+    const emp = employees.find(e=>e.id===ownerTabId);
+    const record = emp ? emp.record : null;
+    const sales = emp ? salesFor(emp.id) : [];
+    const t = computeTotalsFor(record, sales);
+
+    html += renderCountdown(t);
+
+    html += `
+    <div class="card">
+      <h2>${escapeHtml(emp?emp.name:"")} — ${fmtDateLabel(currentDate)}</h2>
+      <div class="stat-grid">
+        <div class="stat"><div class="n">${t.bagsSold}</div><div class="l">bags sold</div></div>
+        <div class="stat"><div class="n">${money(t.cash)}</div><div class="l">cash collected</div></div>
+        <div class="stat"><div class="n">${money(t.momo)}</div><div class="l">momo collected</div></div>
+        <div class="stat"><div class="n">${money(t.credit)}</div><div class="l">given on credit</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Status</h2>
+      <div class="flexrow"><span class="small">Truck load</span>${record?.bagsLoaded!=null ? `<span class="pill ${record.loadStatus==='confirmed'?'confirmed':'pending'}">${record.bagsLoaded} bags — ${record.loadStatus||'pending'}</span>` : `<span class="small">not logged yet</span>`}</div>
+      <div class="divider"></div>
+      <div class="flexrow"><span class="small">Evening return</span>${record?.bagsReturned!=null ? `<span class="pill ${record.returnStatus==='confirmed'?'confirmed':'pending'}">${record.bagsReturned} bags — ${record.returnStatus||'pending'}</span>` : `<span class="small">not logged yet</span>`}</div>
+    </div>
+
+    <div class="card">
+      <h2>Live activity — ${escapeHtml(emp?emp.name:"")}</h2>
+      ${renderFeed(sales)}
+    </div>`;
+  }
+
+  el.innerHTML = html;
+
+  el.querySelectorAll(".tab-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{ ownerTabId = btn.dataset.tab; renderCousin(); });
+  });
+  el.querySelectorAll("[data-goto]").forEach(row=>{
+    row.addEventListener("click", ()=>{ ownerTabId = row.dataset.goto; renderCousin(); window.scrollTo({top:0, behavior:"smooth"}); });
+  });
+
+  const addEmpBtn = document.getElementById("addEmpBtn");
+  if(addEmpBtn) addEmpBtn.addEventListener("click", async ()=>{
+    const name = document.getElementById("newEmpName").value.trim();
+    if(!name){ showToast("Enter the employee's name"); return; }
+    if(!db){ showToast("No live sync in this preview"); return; }
+    const id = slugify(name);
+    if(rosterData.find(e=>e.id===id)){ showToast("An employee with that name already exists"); return; }
+    try{
+      await db.doc(`roster/${id}`).set({ name, active:true, addedAt: Date.now() });
+      showToast(`Added ${name}`);
+      document.getElementById("newEmpName").value="";
+    }catch(e){ showToast(describeDbError(e)); }
+  });
+
+  el.querySelectorAll("[data-remove-emp]").forEach(span=>{
+    span.addEventListener("click", async ()=>{
+      const id = span.dataset.removeEmp;
+      if(!db) return;
+      try{
+        await db.doc(`roster/${id}`).update({ active:false });
+        showToast("Removed");
+      }catch(e){ showToast(describeDbError(e)); }
+    });
+  });
+
+  // swipe left/right on the owner view to move between tabs
+  let touchStartX = null;
+  el.addEventListener("touchstart", (e)=>{ touchStartX = e.changedTouches[0].clientX; }, {passive:true});
+  el.addEventListener("touchend", (e)=>{
+    if(touchStartX==null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    touchStartX = null;
+    if(Math.abs(dx) < 60) return; // not a real swipe
+    const order = ["all", ...employees.map(e=>e.id)];
+    const idx = order.indexOf(ownerTabId);
+    if(idx===-1) return;
+    let nextIdx = dx < 0 ? idx+1 : idx-1; // swipe left = next, swipe right = previous
+    nextIdx = Math.max(0, Math.min(order.length-1, nextIdx));
+    if(nextIdx!==idx){ ownerTabId = order[nextIdx]; renderCousin(); }
+  }, {passive:true});
+}
+
+function renderFeed(items){
+  if(!items || items.length===0) return `<div class="empty">No sales logged yet</div>`;
+  const total = items.length;
+  return items.map((s,i)=>{
+    const time = s.ts ? new Date(s.ts).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}) : "";
+    const payLabel = s.paymentType==="cash"?"Cash":s.paymentType==="momo"?"MoMo":"Credit";
+    const entryNum = total - i; // items are newest-first, so #1 is the earliest of the day
+    return `<div class="feed-item">
+      <div class="top"><span>#${entryNum} · ${s.bags} bags @ ${s.pricePerBag}</span><span>${money(s.amount)}</span></div>
+      <div class="meta">${s.employeeName?escapeHtml(s.employeeName)+" · ":""}${payLabel}${s.customerName?" · "+escapeHtml(s.customerName):""}${s.freeBags?" · +"+s.freeBags+" free":""}${s.damagedBags?" · "+s.damagedBags+" damaged":""} · ${time}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderCountdown(t){
+  if(t.bagsLoaded==null){
+    return `<div class="countdown"><div class="n">–</div><div class="l">NO LOAD LOGGED YET</div></div>`;
+  }
+  const remaining = Math.max(t.bagsRemaining, 0);
+  const pctLeft = t.bagsLoaded>0 ? Math.max(0, Math.min(100, (remaining/t.bagsLoaded)*100)) : 0;
+  let cls = "countdown";
+  if(remaining<=0) cls += " empty";
+  else if(pctLeft<=15) cls += " low";
+  return `<div class="${cls}">
+    <div class="n">${remaining}</div>
+    <div class="l">BAGS LEFT UNSOLD (of ${t.bagsLoaded} loaded)</div>
+    <div class="bar"><div class="bar-fill" style="width:${pctLeft}%"></div></div>
+  </div>`;
+}
+
+function currentRole(){
+  if(currentUser && currentUser.role==="cousin" && ownerPreview) return ownerPreview;
+  return currentUser ? currentUser.role : "employee";
+}
+
+function renderDashboard(){
+  const el=document.getElementById('view-dashboard');
+  const role=currentRole();
+  const employees=getEmployeeList();
+  const totals=computeTotalsFor(null,salesData);
+  const activeTrips=employees.filter(e=>e.record && e.record.bagsLoaded!=null && e.record.bagsReturned==null).length;
+  const pendingLoads=employees.filter(e=>e.record && e.record.loadStatus==='pending').length;
+  const pendingReturns=employees.filter(e=>e.record && e.record.returnStatus==='pending').length;
+  const discrepancies=employees.filter(e=>{
+    if(!e.record || e.record.bagsReturned==null) return false;
+    const t=computeTotalsFor(e.record,salesFor(e.id));
+    return Math.abs((e.record.bagsReturned||0)-(t.bagsRemaining||0))>0 || Math.abs((e.record.cashReturned||0)-t.cash)>0;
+  }).length;
+
+  let topEmployees=employees.map(e=>{
+    const t=computeTotalsFor(e.record,salesFor(e.id));
+    return {name:e.name,bags:t.bagsSold,money:t.cash+t.momo+t.credit,remaining:t.bagsRemaining};
+  }).sort((a,b)=>b.bags-a.bags).slice(0,5);
+
+  const employeeSelf=role==='employee' ? getSavedEmployeeId() : '';
+  const self=employeeSelf ? employees.find(e=>e.id===employeeSelf) : null;
+  const selfTotals=self ? computeTotalsFor(self.record,salesFor(self.id)) : null;
+
+  let html=`<div class="dashboard-head">
+    <div><h2>${role==='employee'?'My Day':'Business Dashboard'}</h2><div class="date">${fmtDateLabel(currentDate)}</div></div>
+    <span class="pill ${employees.length?'confirmed':'pending'}">${employees.length} employee${employees.length===1?'':'s'} active</span>
+  </div>`;
+
+  if(role==='employee'){
+    if(!self){
+      html+=`<div class="banner warn">Select your name at the top of the Sales or Trips screen to see your personal dashboard.</div>`;
+    } else {
+      html+=`<div class="dash-grid">
+        <div class="dash-stat"><div class="icon">💧</div><div class="value">${selfTotals.bagsSold}</div><div class="label">Bags sold</div></div>
+        <div class="dash-stat"><div class="icon">₵</div><div class="value">${money(selfTotals.cash+selfTotals.momo+selfTotals.credit)}</div><div class="label">Sales value</div></div>
+        <div class="dash-stat"><div class="icon">📦</div><div class="value">${selfTotals.bagsRemaining ?? '–'}</div><div class="label">Bags remaining</div></div>
+        <div class="dash-stat"><div class="icon">💳</div><div class="value">${money(selfTotals.credit)}</div><div class="label">Credit today</div></div>
+      </div>`;
+    }
+  } else {
+    html+=`<div class="dash-grid">
+      <div class="dash-stat"><div class="icon">₵</div><div class="value">${money(totals.cash+totals.momo+totals.credit)}</div><div class="label">Today's sales</div><div class="hint">Cash + MoMo + credit</div></div>
+      <div class="dash-stat"><div class="icon">💧</div><div class="value">${totals.bagsSold}</div><div class="label">Bags sold</div><div class="hint">${totals.free} free · ${totals.damaged} damaged</div></div>
+      <div class="dash-stat"><div class="icon">🚚</div><div class="value">${activeTrips}</div><div class="label">Active trips</div><div class="hint">${employees.length} employees on record</div></div>
+      <div class="dash-stat"><div class="icon">💳</div><div class="value">${money(totals.credit)}</div><div class="label">Credit today</div><div class="hint">Needs customer follow-up</div></div>
+    </div>
+    <div class="dash-section"><h3>Attention required</h3><div class="attention-list">
+      ${pendingLoads?`<div class="attention-item warn"><span>⏳ Loads awaiting confirmation</span><span class="count">${pendingLoads}</span></div>`:''}
+      ${pendingReturns?`<div class="attention-item warn"><span>↩ Returns awaiting reconciliation</span><span class="count">${pendingReturns}</span></div>`:''}
+      ${discrepancies?`<div class="attention-item warn"><span>⚠️ Trips with discrepancies</span><span class="count">${discrepancies}</span></div>`:''}
+      ${!pendingLoads&&!pendingReturns&&!discrepancies?`<div class="attention-item good"><span>✓ Nothing needs attention right now</span><span class="count">Good</span></div>`:''}
+    </div></div>
+    <div class="dash-section"><h3>Quick actions</h3><div class="dash-actions">
+      <button class="dash-action" data-dash-nav="trips"><span class="aicon">🚚</span>View trips</button>
+      <button class="dash-action" data-dash-nav="routes"><span class="aicon">↗</span>Route activity</button>
+      <button class="dash-action" data-dash-nav="sales"><span class="aicon">▤</span>Sales</button>
+      <button class="dash-action" data-dash-nav="credit"><span class="aicon">₵</span>Review credit</button>
+    </div></div>
+    <div class="dash-section"><h3>Today's employee performance</h3>
+      ${topEmployees.length?`<table class="dash-table"><thead><tr><th>Employee</th><th class="num">Bags</th><th class="num">Value</th><th class="num">Left</th></tr></thead><tbody>${topEmployees.map(e=>`<tr><td>${escapeHtml(e.name)}</td><td class="num">${e.bags}</td><td class="num">${money(e.money)}</td><td class="num">${e.remaining ?? '–'}</td></tr>`).join('')}</tbody></table>`:`<div class="empty">No employee activity yet today.</div>`}
+    </div>`;
+  }
+  el.innerHTML=html;
+  el.querySelectorAll('[data-dash-nav]').forEach(b=>b.addEventListener('click',()=>setActiveNav(b.dataset.dashNav)));
+}
+
+
+// ---------- SALES / CUSTOMERS / CREDIT WORKSPACES ----------
+function customerBalance(id){
+  const credits=creditData.filter(x=>x.customerId===id && x.status==='approved').reduce((a,x)=>a+(x.amount||0),0);
+  const payments=paymentData.filter(x=>x.customerId===id && x.status!=='rejected').reduce((a,x)=>a+(x.amount||0),0);
+  return credits-payments;
+}
+function customerCredits(id){ return creditData.filter(x=>x.customerId===id).sort((a,b)=>(b.ts||0)-(a.ts||0)); }
+function customerName(id){ const c=customersData.find(x=>x.id===id); return c?.name || 'Unknown customer'; }
+function canManageCredit(){ return currentRole()==='manager' || currentRole()==='cousin'; }
+function canAddCustomer(){ return true; }
+function fmtTime(ts){ return ts ? new Date(ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '—'; }
+
+function renderSalesModule(){
+  const role=currentRole();
+  const visibleSales = role==='employee' ? salesData.filter(s=>slugify(s.employeeName||'')===getSavedEmployeeId()) : salesData;
+  const totals=computeTotalsFor(null,visibleSales);
+  const employees=[...new Set(visibleSales.map(s=>s.employeeName).filter(Boolean))].sort();
+  let html=`<div class="workspace-head"><div><h2>Sales</h2><div class="subline">${role==='employee'?'Your sales for '+fmtDateLabel(currentDate):'All sales for '+fmtDateLabel(currentDate)}</div></div><span class="status-pill">${visibleSales.length} entries</span></div>`;
+  html+=`<div class="workspace-grid">
+    <div class="workspace-stat"><div class="v">${totals.bagsSold}</div><div class="l">Bags sold</div></div>
+    <div class="workspace-stat"><div class="v">${money(totals.cash+totals.momo+totals.credit)}</div><div class="l">Sales value</div></div>
+    <div class="workspace-stat"><div class="v">${money(totals.cash)}</div><div class="l">Cash</div></div>
+    <div class="workspace-stat"><div class="v">${money(totals.momo)}</div><div class="l">MoMo</div></div>
+  </div>`;
+  if(role==='employee'){
+    const wsSelId=getSavedEmployeeId();
+    html+=`<div class="workspace-card"><div class="who-bar"><span class="lbl">EMPLOYEE</span><select id="wsEmployeeSelect" style="flex:1; background:transparent; border:none; padding:4px 0; font-size:14px; font-weight:700; color:var(--ink);"><option value="">Select your name</option>${rosterData.filter(e=>e.active!==false).map(e=>`<option value="${e.id}" ${e.id===wsSelId?"selected":""}>${escapeHtml(e.name)}</option>`).join("")}</select></div>${rosterData.length===0?'<div class="banner warn" style="margin-top:8px">⚠️ No employees on the roster yet — ask the manager or owner to add you under Employees.</div>':''}</div>`;
+    html+=`<div class="workspace-card"><h3>Log a sale</h3>
+      <label>Bags sold</label><input id="wsSaleBags" type="number" min="1" inputmode="numeric" placeholder="e.g. 10">
+      <label>Price per bag</label>
+      <div class="pricebtns" id="wsSalePriceBtns">
+        <button type="button" data-ws-price="7">7.0</button>
+        <button type="button" data-ws-price="7.5">7.5</button>
+        <button type="button" data-ws-price="8">8.0</button>
+      </div>
+      <input type="hidden" id="wsSalePrice" value="">
+      <label>Payment method</label>
+      <div class="paybtns" id="wsSalePayBtns">
+        <button type="button" data-ws-pay="cash">Cash</button>
+        <button type="button" data-ws-pay="momo">MoMo</button>
+        <button type="button" data-ws-pay="credit">Credit</button>
+      </div>
+      <input type="hidden" id="wsSalePay" value="">
+      <label>Customer (required for credit)</label><input id="wsSaleCustomer" class="standard-field" list="wsCustomerList" placeholder="Search customer name"><datalist id="wsCustomerList">${customersData.filter(c=>c.status!=='rejected').map(c=>`<option value="${escapeHtml(c.name)}">`).join('')}</datalist>
+      <label>Credit note / explanation (optional)</label><input id="wsCreditNote" class="standard-field" placeholder="Reason or delivery note">
+      <div class="row"><div><label>Free bags</label><input id="wsSaleFree" type="number" min="0" value="0"></div><div><label>Damaged bags</label><input id="wsSaleDamaged" type="number" min="0" value="0"></div></div>
+      <div class="form-actions"><button class="primary" id="wsLogSale">Log sale</button></div>
+    </div>`;
+  }
+  html+=`<div class="workspace-card"><h3>Recent sales</h3><div class="workspace-list">${visibleSales.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,40).map(s=>`<div class="workspace-row"><div class="main"><div class="title">${s.bags||0} bags · ${money(s.amount||0)}</div><div class="meta">${s.employeeName?escapeHtml(s.employeeName)+' · ':''}${s.paymentType==='cash'?'Cash':s.paymentType==='momo'?'MoMo':'Credit'}${s.customerName?' · '+escapeHtml(s.customerName):''}${saleAreaLabel(s)?' · '+escapeHtml(saleAreaLabel(s)):''} · ${fmtTime(s.ts)}</div></div><span class="status-pill ${s.paymentType==='credit'?'pending':''}">${s.paymentType==='credit'?'Credit':'Recorded'}</span></div>`).join('') || '<div class="empty-state">No sales recorded yet.</div>'}</div></div>`;
+  return html;
+}
+
+function renderCustomersModule(){
+  const role=currentRole();
+  const active=customersData.filter(c=>c.status!=='rejected');
+  const q=(window._customerSearch||'').trim().toLowerCase();
+  const filtered=active.filter(c=>!q || [c.name,c.phone,c.address,c.area].some(v=>(v||'').toLowerCase().includes(q)));
+  let html=`<div class="workspace-head"><div><h2>Customers</h2><div class="subline">Customer accounts and credit history</div></div><span class="status-pill">${active.length} customers</span></div>`;
+  html+=`<div class="workspace-card"><h3>Find a customer</h3><div class="workspace-search"><input id="customerSearch" value="${escapeHtml(window._customerSearch||'')}" placeholder="Name, phone, area..."><button class="btn-secondary" id="clearCustomerSearch">Clear</button></div><div class="workspace-list">${filtered.slice(0,80).map(c=>{const b=customerBalance(c.id);return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(c.name)} ${c.status==='pending'?'<span class="status-pill pending">Pending</span>':''}</div><div class="meta">${escapeHtml(c.phone||'No phone')} · ${escapeHtml(c.area||c.address||'No address')}</div></div><div style="text-align:right"><div class="amount ${b>0?'balance-positive':'balance-zero'}">${money(b)}</div><button class="btn-secondary" data-customer-view="${c.id}" style="margin-top:5px;padding:5px 8px;font-size:11px">View</button></div></div>`}).join('')||'<div class="empty-state">No customers found.</div>'}</div></div>`;
+  if((role==='manager'||role==='cousin') && active.some(c=>c.status==='pending')){
+    const pendingCustomers=active.filter(c=>c.status==='pending');
+    html+=`<div class="workspace-card"><h3>Customer requests awaiting review</h3><div class="workspace-list">${pendingCustomers.map(c=>`<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(c.name)} <span class="status-pill pending">Pending</span></div><div class="meta">${escapeHtml(c.phone||'No phone')} · ${escapeHtml(c.area||c.address||'No address')} · Added by ${escapeHtml(c.createdBy||'employee')}</div>${c.notes?`<div class="meta">Note: ${escapeHtml(c.notes)}</div>`:''}</div><div><button class="btn-secondary" data-customer-approve="${c.id}" style="padding:6px 8px;font-size:11px">Approve</button><button class="btn-danger" data-customer-reject="${c.id}" style="padding:6px 8px;font-size:11px;margin-top:5px">Reject</button></div></div>`).join('')}</div></div>`;
+  }
+  html+=`<div class="workspace-card"><h3>Add customer</h3><div class="customer-form-stack"><label>Full name</label><input id="newCustName" class="standard-field" placeholder="Customer name"><label>Phone number</label><input id="newCustPhone" class="standard-field" type="tel" inputmode="tel" placeholder="Phone number"><label>Area / town</label><input id="newCustArea" class="standard-field" placeholder="Area / town"><label>Address</label><input id="newCustAddress" class="standard-field" placeholder="Address"><label>Notes</label><input id="newCustNotes" class="standard-field" placeholder="Optional notes"></div><div class="form-actions"><button class="primary" id="addCustomerBtn">${role==='employee'?'Add customer for review':'Add customer'}</button></div><div class="small" style="margin-top:7px">${role==='employee'?'New customers created by field staff are marked pending for manager review.':'Customers you add are active immediately.'}</div></div>`;
+  return html;
+}
+
+function renderCustomerDetail(id){
+  const c=customersData.find(x=>x.id===id); if(!c) return '';
+  const b=customerBalance(id), tx=customerCredits(id), pays=paymentData.filter(x=>x.customerId===id).sort((a,z)=>(z.ts||0)-(a.ts||0));
+  return `<div class="workspace-card"><div class="workspace-head"><div><h3 style="margin:0">${escapeHtml(c.name)}</h3><div class="subline">${escapeHtml(c.phone||'No phone')} · ${escapeHtml(c.area||c.address||'')}</div></div><span class="status-pill ${b>0?'pending':'approved'}">Balance ${money(b)}</span></div><div class="detail-grid"><div class="item">Address<strong>${escapeHtml(c.address||'—')}</strong></div><div class="item">Status<strong>${escapeHtml(c.status||'active')}</strong></div></div><h4>Account history</h4><div class="workspace-list">${tx.concat(pays).sort((a,z)=>(z.ts||0)-(a.ts||0)).map(x=>`<div class="workspace-row"><div class="main"><div class="title">${x.type==='payment'?'Payment':'Credit'} · ${money(x.amount||0)}</div><div class="meta">${x.employeeName?escapeHtml(x.employeeName)+' · ':''}${x.note?escapeHtml(x.note):''} · ${new Date(x.ts||Date.now()).toLocaleDateString()}</div></div><span class="amount">${x.type==='payment'?'−':'+'}${money(x.amount||0)}</span></div>`).join('')||'<div class="empty-state">No account transactions yet.</div>'}</div>${canManageCredit()?`<div class="form-actions"><button class="btn-secondary" data-customer-payment="${id}">Record payment</button></div>`:''}</div>`;
+}
+
+function renderCreditModule(){
+  const pending=creditData.filter(x=>x.status==='pending');
+  const approved=creditData.filter(x=>x.status==='approved');
+  const outstanding=customersData.map(c=>({c,b:customerBalance(c.id)})).filter(x=>x.b>0).sort((a,b)=>b.b-a.b);
+  let html=`<div class="workspace-head"><div><h2>Credit</h2><div class="subline">Review credit sales, customer balances and payments</div></div><span class="status-pill ${pending.length?'pending':'approved'}">${pending.length} pending</span></div>`;
+  html+=`<div class="workspace-grid"><div class="workspace-stat"><div class="v">${pending.length}</div><div class="l">Pending review</div></div><div class="workspace-stat"><div class="v">${money(approved.reduce((a,x)=>a+(x.amount||0),0))}</div><div class="l">Approved credit</div></div><div class="workspace-stat"><div class="v">${outstanding.length}</div><div class="l">Customers owing</div></div><div class="workspace-stat"><div class="v">${money(outstanding.reduce((a,x)=>a+x.b,0))}</div><div class="l">Outstanding</div></div></div>`;
+  html+=`<div class="workspace-two"><div><div class="workspace-card"><h3>Pending review</h3><div class="workspace-list">${pending.map(x=>`<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(customerName(x.customerId))} · ${money(x.amount||0)}</div><div class="meta">${x.bags||0} bags @ ${money(x.pricePerBag||0)}/bag · ${escapeHtml(x.employeeName||'')} · ${new Date(x.ts||Date.now()).toLocaleDateString()}</div>${x.explanation?`<div class="meta">Note: ${escapeHtml(x.explanation)}</div>`:''}</div>${canManageCredit()?`<div><button class="btn-secondary" data-credit-approve="${x.id}" style="padding:6px 8px;font-size:11px">Approve</button><button class="btn-danger" data-credit-reject="${x.id}" style="padding:6px 8px;font-size:11px;margin-top:5px">Reject</button></div>`:`<span class="status-pill pending">Pending</span>`}</div>`).join('')||'<div class="empty-state">No credit transactions awaiting review.</div>'}</div></div><div><div class="workspace-card"><h3>Customers owing</h3><div class="workspace-list">${outstanding.slice(0,30).map(x=>`<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(x.c.name)}</div><div class="meta">${escapeHtml(x.c.phone||'')} · ${escapeHtml(x.c.area||'')}</div></div><span class="amount balance-positive">${money(x.b)}</span></div>`).join('')||'<div class="empty-state">No outstanding customer balances.</div>'}</div></div></div></div>`;
+  html+=`<div class="workspace-card"><h3>Record customer payment</h3><div class="row"><div><label>Customer</label><select id="paymentCustomer"><option value="">Select customer</option>${customersData.filter(c=>customerBalance(c.id)>0).map(c=>`<option value="${c.id}">${escapeHtml(c.name)} — ${money(customerBalance(c.id))}</option>`).join('')}</select></div><div><label>Amount</label><input id="paymentAmount" type="number" min="0" step="0.01" placeholder="GHS"></div></div><div class="row"><div><label>Method</label><select id="paymentMethod"><option value="cash">Cash</option><option value="momo">MoMo</option></select></div><div><label>Note</label><input id="paymentNote" class="standard-field" placeholder="Optional note"></div></div><div class="form-actions"><button class="primary" id="recordPaymentBtn">Record payment</button></div></div>`;
+  return html;
+}
+
+
+// ---------- STOCK / MONEY / REPORTS WORKSPACES ----------
+function stockNetTransactions(dateStr){
+  return stockData.filter(x=>!dateStr || x.date===dateStr);
+}
+function stockMovementForDate(dateStr){
+  const tx=stockNetTransactions(dateStr);
+  let production=0, adjustment=0, damage=0;
+  tx.forEach(x=>{
+    const q=Number(x.quantity)||0;
+    if(x.type==='production') production+=q;
+    else if(x.type==='adjustment') adjustment+=q;
+    else if(x.type==='damage') damage+=q;
+  });
+  const dispatch=employeesData.reduce((sum,e)=>sum+(Number(e.bagsLoaded)||0),0);
+  const returns=employeesData.reduce((sum,e)=>sum+(Number(e.bagsReturned)||0),0);
+  return {production,adjustment,damage,dispatch,returns};
+}
+function stockBalance(dateStr){
+  const tx=stockNetTransactions(dateStr);
+  const opening=tx.filter(x=>x.type==='opening').reduce((a,x)=>a+(Number(x.quantity)||0),0);
+  const m=stockMovementForDate(dateStr);
+  return opening+m.production+m.adjustment-m.damage-m.dispatch+m.returns;
+}
+function renderStockModule(){
+  const role=currentRole();
+  const m=stockMovementForDate(currentDate);
+  const opening=stockNetTransactions(currentDate).filter(x=>x.type==='opening').reduce((a,x)=>a+(Number(x.quantity)||0),0);
+  const balance=stockBalance(currentDate);
+  const tx=stockNetTransactions(currentDate).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  let html=`<div class="workspace-head"><div><h2>Stock</h2><div class="subline">Warehouse water movement for ${fmtDateLabel(currentDate)}</div></div><span class="status-pill">${balance.toLocaleString()} bags</span></div>`;
+  html+=`<div class="workspace-grid">
+    <div class="workspace-stat"><div class="v">${balance.toLocaleString()}</div><div class="l">Estimated stock</div></div>
+    <div class="workspace-stat"><div class="v">${m.production.toLocaleString()}</div><div class="l">Produced today</div></div>
+    <div class="workspace-stat"><div class="v">${m.dispatch.toLocaleString()}</div><div class="l">Loaded onto trucks</div></div>
+    <div class="workspace-stat"><div class="v">${m.returns.toLocaleString()}</div><div class="l">Returned</div></div>
+  </div>`;
+  if(role!=='employee') html+=`<div class="workspace-card"><h3>Record stock movement</h3>
+    <div class="row"><div><label>Type</label><select id="stockType"><option value="production">Production / stock in</option><option value="opening">Opening balance</option><option value="adjustment">Adjustment</option><option value="damage">Damaged / loss</option></select></div><div><label>Bags</label><input id="stockQty" type="number" min="1" inputmode="numeric" placeholder="e.g. 500"></div></div>
+    <label>Note</label><input id="stockNote" placeholder="e.g. Morning production">
+    <div class="form-actions"><button class="primary" id="stockAddBtn">Save movement</button></div>
+  </div>`;
+  html+=`<div class="workspace-card"><h3>Today's movement</h3><div class="workspace-list">
+    ${opening?`<div class="workspace-row"><div class="main"><div class="title">Opening balance</div><div class="meta">${opening.toLocaleString()} bags</div></div><span class="status-pill">Stock in</span></div>`:''}
+    ${tx.filter(x=>x.type!=='opening').map(x=>`<div class="workspace-row"><div class="main"><div class="title">${x.type==='production'?'Production':x.type==='damage'?'Damage / loss':'Adjustment'} · ${Number(x.quantity||0).toLocaleString()} bags</div><div class="meta">${escapeHtml(x.note||'')} · ${fmtTime(x.ts)}</div></div><span class="status-pill ${x.type==='damage'?'pending':''}">${x.type==='damage'?'Out':'In'}</span></div>`).join('') || '<div class="empty-state">No manual stock movements recorded today.</div>'}
+    ${m.dispatch?`<div class="workspace-row"><div class="main"><div class="title">Truck dispatch · ${m.dispatch.toLocaleString()} bags</div><div class="meta">Based on employee loads</div></div><span class="status-pill pending">Out</span></div>`:''}
+    ${m.returns?`<div class="workspace-row"><div class="main"><div class="title">Truck returns · ${m.returns.toLocaleString()} bags</div><div class="meta">Based on employee returns</div></div><span class="status-pill">In</span></div>`:''}
+  </div></div>`;
+  return html;
+}
+function renderMoneyModule(){
+  const role=currentRole();
+  const sales=role==='employee'?salesData.filter(s=>slugify(s.employeeName||'')===getSavedEmployeeId()):salesData;
+  const t=computeTotalsFor(null,sales);
+  const customerCollections=paymentData.filter(p=>p.status!=='rejected' && p.ts && new Date(p.ts).toISOString().slice(0,10)===currentDate).reduce((a,p)=>a+(Number(p.amount)||0),0);
+  const customerCash=paymentData.filter(p=>p.status!=='rejected' && p.ts && new Date(p.ts).toISOString().slice(0,10)===currentDate && p.method==='cash').reduce((a,p)=>a+(Number(p.amount)||0),0);
+  const customerMomo=paymentData.filter(p=>p.status!=='rejected' && p.ts && new Date(p.ts).toISOString().slice(0,10)===currentDate && p.method==='momo').reduce((a,p)=>a+(Number(p.amount)||0),0);
+  const expectedCash=t.cash+customerCash;
+  const expectedMomo=t.momo+customerMomo;
+  let html=`<div class="workspace-head"><div><h2>Money</h2><div class="subline">Daily money position for ${fmtDateLabel(currentDate)}</div></div><span class="status-pill">${money(t.cash+t.momo+t.credit)}</span></div>`;
+  html+=`<div class="workspace-grid">
+    <div class="workspace-stat"><div class="v">${money(t.cash+t.momo+t.credit)}</div><div class="l">Sales value</div></div>
+    <div class="workspace-stat"><div class="v">${money(t.cash)}</div><div class="l">Cash sales</div></div>
+    <div class="workspace-stat"><div class="v">${money(t.momo)}</div><div class="l">MoMo sales</div></div>
+    <div class="workspace-stat"><div class="v">${money(t.credit)}</div><div class="l">Credit issued</div></div>
+  </div>`;
+  html+=`<div class="workspace-two"><div class="workspace-card"><h3>Cash & MoMo position</h3>
+    <div class="money-line"><span>Cash from sales</span><strong>${money(t.cash)}</strong></div>
+    <div class="money-line"><span>Customer cash collections</span><strong>${money(customerCash)}</strong></div>
+    <div class="money-line total"><span>Expected cash</span><strong>${money(expectedCash)}</strong></div>
+    <div class="money-line"><span>MoMo from sales</span><strong>${money(t.momo)}</strong></div>
+    <div class="money-line"><span>Customer MoMo collections</span><strong>${money(customerMomo)}</strong></div>
+    <div class="money-line total"><span>Expected MoMo</span><strong>${money(expectedMomo)}</strong></div>
+  </div><div class="workspace-card"><h3>Customer collections</h3><div class="workspace-stat"><div class="v">${money(customerCollections)}</div><div class="l">Collected from outstanding credit</div></div><div class="meta" style="margin-top:10px">These payments reduce customer balances; they are separate from today's new sales.</div></div></div>`;
+  if(role!=='employee') html+=`<div class="workspace-card"><h3>Reconciliation reminder</h3><div class="workspace-list"><div class="workspace-row"><div class="main"><div class="title">Expected cash</div><div class="meta">Compare with cash physically returned by each employee.</div></div><span class="amount">${money(expectedCash)}</span></div><div class="workspace-row"><div class="main"><div class="title">Expected MoMo</div><div class="meta">Compare with employee-reported MoMo collections.</div></div><span class="amount">${money(expectedMomo)}</span></div></div></div>`;
+  return html;
+}
+function renderReportsModule(){
+  const role=currentRole();
+  const sales=role==='employee'?salesData.filter(s=>slugify(s.employeeName||'')===getSavedEmployeeId()):salesData;
+  const t=computeTotalsFor(null,sales);
+  const employees=getEmployeeList().map(e=>{const x=computeTotalsFor(e.record,salesFor(e.id));return {name:e.name,...x,value:x.cash+x.momo+x.credit};}).sort((a,b)=>b.value-a.value);
+  const routeHint=employees.length?employees[0].name:'—';
+  let html=`<div class="workspace-head"><div><h2>Reports</h2><div class="subline">Business summary for ${fmtDateLabel(currentDate)}</div></div><button class="btn-secondary" id="exportReportBtn">Export CSV</button></div>`;
+  html+=`<div class="workspace-grid"><div class="workspace-stat"><div class="v">${t.bagsSold}</div><div class="l">Bags sold</div></div><div class="workspace-stat"><div class="v">${money(t.cash+t.momo+t.credit)}</div><div class="l">Sales value</div></div><div class="workspace-stat"><div class="v">${money(t.credit)}</div><div class="l">Credit issued</div></div><div class="workspace-stat"><div class="v">${employees.length}</div><div class="l">Employees with activity</div></div></div>`;
+  html+=`<div class="workspace-card"><h3>Employee performance</h3><div class="workspace-list">${employees.map((e,i)=>`<div class="workspace-row"><div class="main"><div class="title">${i+1}. ${escapeHtml(e.name)}</div><div class="meta">${e.bagsSold} bags · Cash ${money(e.cash)} · MoMo ${money(e.momo)} · Credit ${money(e.credit)}</div></div><span class="amount">${money(e.value)}</span></div>`).join('')||'<div class="empty-state">No activity recorded for this day.</div>'}</div></div>`;
+  html+=`<div class="workspace-two"><div class="workspace-card"><h3>Payment mix</h3><div class="money-line"><span>Cash</span><strong>${money(t.cash)}</strong></div><div class="money-line"><span>MoMo</span><strong>${money(t.momo)}</strong></div><div class="money-line"><span>Credit</span><strong>${money(t.credit)}</strong></div></div><div class="workspace-card"><h3>Management insight</h3><div class="meta">Top sales employee today: <strong>${escapeHtml(routeHint)}</strong>. Use this report alongside Routes to identify high-performing areas and decide where to increase route frequency.</div></div></div>`;
+  return html;
+}
+function renderWorkspace(){
+  const el=document.getElementById('view-workspace');
+  const modules=['trips','routes','sales','customers','credit','stock','money','employees','reports','settings','accounts'];
+  if(!modules.includes(activeNav)){el.innerHTML='';return;}
+  let html='';
+  const role=currentRole();
+  if(activeNav==='trips') html=renderTripsModule();
+  if(activeNav==='routes') html=renderRoutesModule();
+  if(activeNav==='sales') html=renderSalesModule();
+  if(activeNav==='customers') html=renderCustomersModule();
+  if(activeNav==='credit') html=renderCreditModule();
+  if(activeNav==='stock') html=renderStockModule();
+  if(activeNav==='money') html=renderMoneyModule();
+  if(activeNav==='employees') html=renderEmployeesModule();
+  if(activeNav==='reports') html=renderReportsModule();
+  if(activeNav==='settings') html=renderSettingsModule();
+  if(activeNav==='accounts') html=renderAccountsModule();
+  if(window._selectedCustomerId && activeNav==='customers') html+=renderCustomerDetail(window._selectedCustomerId);
+  el.innerHTML=html;
+  wireWorkspace();
+  wireOperationsModules();
+  wireHubModules();
+  wireAccountsModule();
+}
+
+function routeById(id){return routesData.find(r=>r.id===id)||null;}
+function saleAreaLabel(s){const r=s.routeId?routeById(s.routeId):null;return r?(r.name+(r.area?' · '+r.area:'')):(s.area||'');}
+function tripForToday(){return tripsData.filter(t=>t.date===currentDate);}
+function myTrips(){const id=getSavedEmployeeId();return tripForToday().filter(t=>slugify(t.employeeName||'')===id);}
+function tripSales(trip){return salesData.filter(s=>s.tripId===trip.id);}
+function routeStats(routeId){
+  const trips=tripsData.filter(t=>t.routeId===routeId);
+  const ids=new Set(trips.map(t=>t.id));
+  const sales=salesData.filter(s=>ids.has(s.tripId));
+  return {trips:trips.length,bags:sales.reduce((a,s)=>a+(s.bags||0),0),revenue:sales.reduce((a,s)=>a+(s.amount||0),0),customers:new Set(sales.map(s=>s.customerId).filter(Boolean)).size};
+}
+function renderTripsModule(){
+  const role=currentRole(); const all=tripForToday(); const mine=myTrips(); const visible=role==='employee'?mine:all;
+  const active=visible.filter(t=>t.status==='active');
+  let html=`<div class="workspace-head"><div><h2>Trips</h2><div class="subline">Truck loading, routes, sales, returns and reconciliation · ${fmtDateLabel(currentDate)}</div></div><span class="status-pill">${active.length} active</span></div>`;
+  const current=role==='employee'?(mine.find(t=>t.status==='active')||null):null;
+  if(role==='employee'){
+    const tripSelId=getSavedEmployeeId();
+    html+=`<div class="workspace-card"><div class="who-bar"><span class="lbl">EMPLOYEE</span><select id="wsEmployeeSelect" style="flex:1; background:transparent; border:none; padding:4px 0; font-size:14px; font-weight:700; color:var(--ink);"><option value="">Select your name</option>${rosterData.filter(e=>e.active!==false).map(e=>`<option value="${e.id}" ${e.id===tripSelId?"selected":""}>${escapeHtml(e.name)}</option>`).join("")}</select></div></div>`;
+    html+=`<div class="workspace-card"><h3>${current?'Active trip':'Start a trip'}</h3>`;
+    if(current){const r=routeById(current.routeId);const sold=tripSales(current).reduce((a,s)=>a+(s.bags||0),0);html+=`<div class="workspace-grid"><div class="workspace-stat"><div class="v">${current.bagsLoaded||0}</div><div class="l">Starting load</div></div><div class="workspace-stat"><div class="v">${sold}</div><div class="l">Bags sold</div></div><div class="workspace-stat"><div class="v">${(current.bagsLoaded||0)-sold}</div><div class="l">Estimated left</div></div><div class="workspace-stat"><div class="v">${escapeHtml(r?(r.name+(r.area?' · '+r.area:'')):'Unassigned')}</div><div class="l">Route</div></div></div><div class="inline-actions"><button class="primary" id="endTripBtn">End trip</button><button class="btn-secondary" id="tripRefreshBtn">Refresh</button></div>`}
+    else {html+=`<label>Route</label><select id="tripRoute"><option value="">Select route</option>${routesData.filter(r=>r.active!==false).map(r=>`<option value="${r.id}">${escapeHtml(r.name)}${r.area?' · '+escapeHtml(r.area):''}</option>`).join('')}</select><label>Starting bags</label><input id="tripLoad" type="number" min="1" placeholder="e.g. 300"><label>Destination / area</label><input id="tripArea" class="standard-field" placeholder="e.g. Ho market, Kpando"><div class="form-actions"><button class="primary" id="startTripBtn">Start trip</button></div>`}
+    html+=`</div>`;
+  } else if(role==='manager' || role==='cousin'){
+    html+=`<div class="workspace-card"><h3>Operations control</h3><div class="workspace-two"><div><label>Employee</label><select id="mgrTripEmp"><option value="">Select employee</option>${rosterData.map(e=>`<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('')}</select></div><div><label>Route</label><select id="mgrTripRoute"><option value="">Select route</option>${routesData.filter(r=>r.active!==false).map(r=>`<option value="${r.id}">${escapeHtml(r.name)}${r.area?' · '+escapeHtml(r.area):''}</option>`).join('')}</select></div></div><label>Starting bags</label><input id="mgrTripLoad" type="number" min="1"><button class="primary" id="mgrStartTripBtn">Create trip</button></div>`;
+  }
+  html+=`<div class="workspace-card"><h3>${role==='employee'?'My trips':'Today’s trips'}</h3><div class="workspace-list">${visible.sort((a,b)=>(b.startedAt||0)-(a.startedAt||0)).map(t=>{const r=routeById(t.routeId);const sold=tripSales(t).reduce((a,s)=>a+(s.bags||0),0);return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(t.employeeName||'')} · ${escapeHtml(r?(r.name+(r.area?' · '+r.area:'')):(t.area||'No route'))}</div><div class="meta">Load ${t.bagsLoaded||0} · Sold ${sold} · ${t.status==='active'?'Active':'Ended'} · ${fmtTime(t.startedAt)}</div></div><span class="status-pill ${t.status==='active'?'pending':''}">${t.status}</span></div>`}).join('')||'<div class="empty-state">No trips recorded today.</div>'}</div></div>`;
+  return html;
+}
+function renderRoutesModule(){
+  const role=currentRole();
+  let html=`<div class="workspace-head"><div><h2>Routes</h2><div class="subline">Build route history from normal trips and sales — no live GPS required.</div></div><span class="status-pill">${routesData.filter(r=>r.active!==false).length} active routes</span></div>`;
+  if(role==='manager'||role==='cousin') html+=`<div class="workspace-card"><h3>Create route</h3><div class="row"><div><label>Route name</label><input id="routeName" placeholder="e.g. Ho–Kpando Monday"></div><div><label>Area / corridor</label><input id="routeArea" placeholder="e.g. Kpando / North Ho"></div></div><label>Notes / target stops</label><input id="routeNotes" placeholder="Markets, shops, schools, etc."><button class="primary" id="addRouteBtn">Create route</button></div>`;
+  html+=`<div class="workspace-card"><h3>Route performance</h3><div class="workspace-list">${routesData.filter(r=>r.active!==false).map(r=>{const st=routeStats(r.id);return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(r.name)} <span class="route-badge">${escapeHtml(r.area||'Area not set')}</span></div><div class="meta">${st.trips} trips · ${st.bags} bags sold · ${st.customers} customers · ${money(st.revenue)}</div></div>${role==='cousin'||role==='manager'?`<button class="btn-secondary" data-route-deactivate="${r.id}">Deactivate</button>`:''}</div>`}).join('')||'<div class="empty-state">No routes yet. Create the first route above.</div>'}</div></div>`;
+  const areaMap={}; salesData.forEach(s=>{if(!s.area&&!s.routeId)return;const key=s.area||routeById(s.routeId)?.area||'Unknown';areaMap[key]=(areaMap[key]||0)+(s.bags||0);});
+  html+=`<div class="workspace-card"><h3>Route opportunity</h3><div class="meta">Areas become measurable when employees select a route and record customer stops. ${Object.keys(areaMap).length?`Current activity: ${Object.entries(areaMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>escapeHtml(x[0])+` (${x[1]} bags)`).join(' · ')}`:'No area-level sales data yet.'}</div></div>`;
+  return html;
+}
+function roleLabel(r){ return r==='cousin'?'Owner':(r==='manager'?'Manager':'Employee'); }
+function renderAccountsModule(){
+  if(!(currentUser&&currentUser.role==='cousin')) return `<div class="workspace-head"><div><h2>Accounts</h2><div class="subline">Owner access only.</div></div></div>`;
+  const users=[...usersCache].sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  let html=`<div class="workspace-head"><div><h2>Accounts</h2><div class="subline">Create and manage portal logins for managers and employees.</div></div><span class="status-pill">${users.filter(u=>u.active!==false).length} active</span></div>`;
+  html+=`<div class="workspace-card"><h3>Create account</h3>
+    <div class="row"><div><label>Full name</label><input id="accName" placeholder="e.g. Kofi Mensah"></div>
+    <div><label>Username</label><input id="accUser" placeholder="e.g. kofi" autocomplete="off"></div></div>
+    <div class="row"><div><label>PIN (4+ digits)</label><input id="accPin" type="password" inputmode="numeric" placeholder="e.g. 2468" autocomplete="off"></div>
+    <div><label>Role</label><select id="accRole"><option value="employee">Employee</option><option value="manager">Manager</option><option value="cousin">Owner</option></select></div></div>
+    <button class="primary" id="accCreateBtn">Create account</button></div>`;
+  html+=`<div class="workspace-card"><h3>All accounts</h3><div class="workspace-list">${users.map(u=>{
+    const self=currentUser&&u.username===currentUser.username;
+    return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(u.name||u.username)} <span class="route-badge">${roleLabel(u.role)}</span>${self?' <span class="status-pill">you</span>':''}</div><div class="meta">@${escapeHtml(u.username||'')} · ${u.active===false?'Inactive':'Active'}</div></div>${self?'':`<button class="btn-secondary" data-acc-toggle="${escapeHtml(u.id)}" data-acc-active="${u.active===false?'0':'1'}">${u.active===false?'Activate':'Deactivate'}</button>`}</div>`;
+  }).join('')||'<div class="empty-state">No accounts yet.</div>'}</div></div>`;
+  return html;
+}
+function wireAccountsModule(){
+  const createBtn=document.getElementById('accCreateBtn');
+  if(createBtn) createBtn.onclick=async()=>{
+    if(!db){ showToast("No connection — try again."); return; }
+    const name=(document.getElementById('accName').value||'').trim();
+    const uname=(document.getElementById('accUser').value||'').trim().toLowerCase();
+    const pin=(document.getElementById('accPin').value||'').trim();
+    const role=document.getElementById('accRole').value;
+    if(!name){ showToast("Enter the person's full name."); return; }
+    if(!/^[a-z0-9_.-]{3,}$/.test(uname)){ showToast("Username: at least 3 letters/numbers, no spaces."); return; }
+    if(pin.length<4){ showToast("PIN must be at least 4 digits."); return; }
+    if(usersCache.some(u=>u.username===uname)){ showToast("That username is already taken."); return; }
+    createBtn.disabled=true;
+    try{
+      const hash=await pinHash(uname,pin);
+      await db.doc("users/"+uname).set({id:uname,username:uname,name:name,pinHash:hash,role:role,active:true,createdAt:Date.now(),createdBy:currentUser?currentUser.name:"owner"});
+      if(role==='employee') await db.doc("roster/"+slugify(name)).set({name:name,role:"employee",active:true,createdAt:Date.now()});
+      showToast("Account created for "+name);
+      document.getElementById('accName').value='';document.getElementById('accUser').value='';document.getElementById('accPin').value='';
+    }catch(e){ console.error(e); showToast(describeDbError(e)); }
+    createBtn.disabled=false;
+  };
+  document.querySelectorAll('[data-acc-toggle]').forEach(btn=>{
+    btn.onclick=async()=>{
+      if(!db) return;
+      const id=btn.getAttribute('data-acc-toggle');
+      const next=btn.getAttribute('data-acc-active')!=='1';
+      try{ await db.doc("users/"+id).update({active:next}); showToast(next?"Account activated":"Account deactivated"); }
+      catch(e){ console.error(e); showToast(describeDbError(e)); }
+    };
+  });
+}
+function renderEmployeesModule(){
+  const role=currentRole(); const can=role==='manager'||role==='cousin';
+  let html=`<div class="workspace-head"><div><h2>Employees</h2><div class="subline">Roster, status, route activity and accountability.</div></div><span class="status-pill">${rosterData.filter(e=>e.active!==false).length} active</span></div>`;
+  if(can) html+=`<div class="workspace-card"><h3>Add employee</h3><div class="row"><div><label>Name</label><input id="newEmpName" placeholder="Full name"></div><div><label>Role</label><select id="newEmpRole"><option value="employee">Field employee</option><option value="manager">Manager</option></select></div></div><button class="primary" id="addEmpBtn">Add employee</button></div>`;
+  html+=`<div class="workspace-card"><h3>Employee roster</h3><div class="workspace-list">${rosterData.map(e=>{const trips=tripsData.filter(t=>slugify(t.employeeName||'')===e.id);const ss=salesData.filter(s=>slugify(s.employeeName||'')===e.id);const bags=ss.reduce((a,s)=>a+(s.bags||0),0);return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(e.name)}</div><div class="meta">${escapeHtml(e.role||'employee')} · ${trips.length} trips · ${bags} bags sold · ${e.active===false?'Inactive':'Active'}</div></div>${can?`<button class="btn-secondary" data-emp-toggle="${e.id}">${e.active===false?'Activate':'Deactivate'}</button>`:''}</div>`}).join('')||'<div class="empty-state">No employees added yet.</div>'}</div></div>`;
+  return html;
+}
+function renderSettingsModule(){
+  const role=currentRole(); const can=role==='cousin';
+  const prices=appSettings.prices||[7,7.5,8];
+  let html=`<div class="workspace-head"><div><h2>Settings</h2><div class="subline">Company rules, pricing and access control.</div></div><span class="status-pill">${can?'Owner access':'View only'}</span></div>`;
+  html+=`<div class="workspace-card"><h3>Company</h3><label>Business name</label><input id="setCompanyName" value="${escapeHtml(appSettings.companyName||'Vintage Cool Natural Mineral Water')}"><label>Default selling prices (GHS/bag)</label><div class="row"><input id="setPrice1" type="number" step="0.5" value="${prices[0]??7}"><input id="setPrice2" type="number" step="0.5" value="${prices[1]??7.5}"><input id="setPrice3" type="number" step="0.5" value="${prices[2]??8}"></div>${can?`<button class="primary" id="saveSettingsBtn">Save settings</button>`:''}</div>`;
+  html+=`<div class="workspace-card"><h3>Permissions</h3><div class="permission-grid"><div class="permission-card"><h4>Employee</h4><div class="checkline">✓ View own trips</div><div class="checkline">✓ Log sales</div><div class="checkline">✓ Record customer credit</div><div class="checkline">✓ End own trip</div><div class="checkline">✓ View own performance</div></div><div class="permission-card"><h4>Manager</h4><div class="checkline">✓ View daily operations</div><div class="checkline">✓ Confirm loads & returns</div><div class="checkline">✓ Review customers & credit</div><div class="checkline">✓ Reconcile money</div><div class="checkline">✓ Manage routes</div></div><div class="permission-card"><h4>Owner</h4><div class="checkline">✓ Full business control</div><div class="checkline">✓ Employees & settings</div><div class="checkline">✓ Reports & route intelligence</div><div class="checkline">✓ Stock & money</div></div></div></div>`;
+  return html;
+}
+function wireHubModules(){
+  const el=document.getElementById('view-workspace'); if(!el)return;
+  const start=el.querySelector('#startTripBtn'); if(start) start.onclick=async()=>{const routeId=el.querySelector('#tripRoute').value,bags=Number(el.querySelector('#tripLoad').value),area=el.querySelector('#tripArea').value.trim(),emp=rosterData.find(e=>e.id===getSavedEmployeeId());if(!emp){showToast('Select your employee name first');return}if(!routeId||!bags){showToast('Select a route and starting load');return}if(!db){showToast('No live sync in this preview');return}if(myTrips().some(t=>t.status==='active')){showToast('You already have an active trip');return}try{await db.collection('trips').add({date:currentDate,employeeId:emp.id,employeeName:emp.name,routeId,area,bagsLoaded:bags,status:'active',startedAt:Date.now(),startedBy:emp.name});await db.doc(`days/${currentDate}/employees/${emp.id}`).set({employeeName:emp.name,bagsLoaded:bags,loadStatus:'pending',loadReportedBy:emp.name,loadReportedAt:Date.now()});showToast('Trip started — load is pending manager confirmation');}catch(e){showToast(describeDbError(e))}};
+  const end=el.querySelector('#endTripBtn'); if(end) end.onclick=async()=>{const t=myTrips().find(x=>x.status==='active');if(!t)return;if(!db)return;try{await db.doc(`trips/${t.id}`).update({status:'ended',endedAt:Date.now()});const rec=recordFor(slugify(t.employeeName));if(rec)await db.doc(`days/${currentDate}/employees/${slugify(t.employeeName)}`).update({bagsReturned:Math.max(0,(t.bagsLoaded||0)-tripSales(t).reduce((a,s)=>a+(s.bags||0),0)),returnStatus:'pending',returnReportedBy:t.employeeName,returnReportedAt:Date.now()});showToast('Trip ended — return is ready for reconciliation');}catch(e){showToast(describeDbError(e))}};
+  const ms=el.querySelector('#mgrStartTripBtn'); if(ms) ms.onclick=async()=>{const emp=rosterData.find(e=>e.id===el.querySelector('#mgrTripEmp').value),routeId=el.querySelector('#mgrTripRoute').value,bags=Number(el.querySelector('#mgrTripLoad').value);if(!emp||!routeId||!bags){showToast('Complete employee, route and load');return}if(!db)return;try{await db.collection('trips').add({date:currentDate,employeeId:emp.id,employeeName:emp.name,routeId,bagsLoaded:bags,status:'active',startedAt:Date.now(),startedBy:currentRole()});await db.doc(`days/${currentDate}/employees/${emp.id}`).set({employeeName:emp.name,bagsLoaded:bags,loadStatus:'confirmed',loadConfirmedBy:currentRole(),loadConfirmedAt:Date.now()},{merge:true});showToast('Trip created');}catch(e){showToast(describeDbError(e))}};
+  const ar=el.querySelector('#addRouteBtn');if(ar)ar.onclick=async()=>{const name=el.querySelector('#routeName').value.trim(),area=el.querySelector('#routeArea').value.trim(),notes=el.querySelector('#routeNotes').value.trim();if(!name){showToast('Enter route name');return}if(!db)return;try{await db.collection('routes').add({name,area,notes,active:true,createdBy:currentRole(),createdAt:Date.now()});showToast('Route created');}catch(e){showToast(describeDbError(e))}};
+  el.querySelectorAll('[data-route-deactivate]').forEach(b=>b.onclick=async()=>{if(!db)return;try{await db.doc(`routes/${b.dataset.routeDeactivate}`).update({active:false});showToast('Route deactivated')}catch(e){showToast(describeDbError(e))}});
+  const ae=el.querySelector('#addEmpBtn');if(ae)ae.onclick=async()=>{const name=el.querySelector('#newEmpName').value.trim(),role=el.querySelector('#newEmpRole').value;if(!name){showToast('Enter employee name');return}if(!db)return;const id=slugify(name);if(rosterData.some(e=>e.id===id)){showToast('Employee already exists');return}try{await db.doc(`roster/${id}`).set({name,role,active:true,createdAt:Date.now(),createdBy:'owner'});showToast('Employee added')}catch(e){showToast(describeDbError(e))}};
+  el.querySelectorAll('[data-emp-toggle]').forEach(b=>b.onclick=async()=>{const e=rosterData.find(x=>x.id===b.dataset.empToggle);if(!e||!db)return;try{await db.doc(`roster/${e.id}`).update({active:e.active===false});showToast(e.active===false?'Employee activated':'Employee deactivated')}catch(err){showToast(describeDbError(err))}});
+  const ss=el.querySelector('#saveSettingsBtn');if(ss)ss.onclick=async()=>{if(!db)return;const prices=[Number(el.querySelector('#setPrice1').value),Number(el.querySelector('#setPrice2').value),Number(el.querySelector('#setPrice3').value)];const companyName=el.querySelector('#setCompanyName').value.trim();try{await db.doc('settings/general').set({companyName,prices,updatedAt:Date.now(),updatedBy:'owner'});appSettings={companyName,prices};showToast('Settings saved');}catch(e){showToast(describeDbError(e))}};
+}
+
+function wireWorkspace(){
+  const el=document.getElementById('view-workspace');
+  if(!el) return;
+  const q=el.querySelector('#customerSearch');
+  if(q){q.addEventListener('input',e=>{window._customerSearch=e.target.value; renderWorkspace();});}
+  const clear=el.querySelector('#clearCustomerSearch'); if(clear) clear.addEventListener('click',()=>{window._customerSearch='';renderWorkspace();});
+  el.querySelectorAll('[data-customer-view]').forEach(b=>b.addEventListener('click',()=>{window._selectedCustomerId=b.dataset.customerView;renderWorkspace();}));
+  el.querySelectorAll('[data-customer-approve]').forEach(b=>b.addEventListener('click',async()=>{if(!db)return;try{await db.doc(`customers/${b.dataset.customerApprove}`).update({status:'active',approvedBy:currentRole(),approvedAt:Date.now()});showToast('Customer approved');}catch(e){showToast(describeDbError(e));}}));
+  el.querySelectorAll('[data-customer-reject]').forEach(b=>b.addEventListener('click',async()=>{if(!db)return;try{await db.doc(`customers/${b.dataset.customerReject}`).update({status:'rejected',rejectedBy:currentRole(),rejectedAt:Date.now()});showToast('Customer rejected');}catch(e){showToast(describeDbError(e));}}));
+  const add=el.querySelector('#addCustomerBtn'); if(add) add.addEventListener('click',async()=>{
+    const name=el.querySelector('#newCustName').value.trim(); if(!name){showToast('Enter customer name');return;}
+    if(!db){showToast('No live sync in this preview');return;}
+    const role=currentRole();
+    const duplicate=customersData.find(c=>(c.name||'').trim().toLowerCase()===name.toLowerCase() && (c.phone||'')===(el.querySelector('#newCustPhone').value.trim()||c.phone||''));
+    if(duplicate){showToast('Customer already exists');return;}
+    try{await db.collection('customers').add({name,phone:el.querySelector('#newCustPhone').value.trim(),area:el.querySelector('#newCustArea').value.trim(),address:el.querySelector('#newCustAddress').value.trim(),notes:el.querySelector('#newCustNotes').value.trim(),status:role==='employee'?'pending':'active',createdBy:role,createdAt:Date.now()});showToast(role==='employee'?'Customer sent for manager review':'Customer added');window._customerSearch=name;}
+    catch(e){showToast(describeDbError(e));}
+  });
+  const wsEmpSel=el.querySelector('#wsEmployeeSelect'); if(wsEmpSel) wsEmpSel.addEventListener('change',()=>{ saveEmployeeId(wsEmpSel.value); renderWorkspace(); });
+  el.querySelectorAll('[data-ws-price]').forEach(b=>b.addEventListener('click',()=>{
+    const val=b.dataset.wsPrice; el.querySelector('#wsSalePrice').value=val;
+    el.querySelectorAll('[data-ws-price]').forEach(x=>x.classList.toggle('sel',x===b));
+  }));
+  el.querySelectorAll('[data-ws-pay]').forEach(b=>b.addEventListener('click',()=>{
+    const val=b.dataset.wsPay; el.querySelector('#wsSalePay').value=val;
+    el.querySelectorAll('[data-ws-pay]').forEach(x=>x.classList.toggle('sel',x===b));
+  }));
+  const log=el.querySelector('#wsLogSale'); if(log) log.addEventListener('click',async()=>{
+    const bags=parseFloat(el.querySelector('#wsSaleBags').value); const price=parseFloat(el.querySelector('#wsSalePrice').value); const pay=el.querySelector('#wsSalePay').value; const custName=el.querySelector('#wsSaleCustomer').value.trim(); const creditNote=el.querySelector('#wsCreditNote')?.value.trim()||''; const free=parseFloat(el.querySelector('#wsSaleFree').value)||0; const damaged=parseFloat(el.querySelector('#wsSaleDamaged').value)||0;
+    const empId=getSavedEmployeeId(); const emp=rosterData.find(x=>x.id===empId)||getEmployeeList().find(x=>x.id===empId); if(!emp){showToast('Select your name at the top of this screen first');return;}
+    if(!bags||bags<=0||!price||!pay){showToast('Complete bags, price and payment');return;}
+    let customer=customersData.find(c=>(c.name||'').toLowerCase()===custName.toLowerCase());
+    if(pay==='credit'&&!customer){showToast('Select an existing customer or add the customer first');return;}
+    if(!db){showToast('No live sync in this preview');return;}
+    const amount=bags*price; const activeTrip=myTrips().find(t=>t.status==='active'); const record={bags,pricePerBag:price,amount,paymentType:pay,customerName:custName||null,customerId:customer?.id||null,freeBags:free,damagedBags:damaged,employeeName:emp.name,tripId:activeTrip?.id||null,routeId:activeTrip?.routeId||null,area:activeTrip?.area||null,ts:Date.now()};
+    if(!confirm(`Log this sale?\n\n${bags} bags × ${money(price)} = ${money(amount)} · ${pay==='cash'?'Cash':pay==='momo'?'MoMo':'Credit'}${custName?' · '+custName:''}${free?' · +'+free+' free':''}${damaged?' · '+damaged+' damaged':''}`)) return;
+    try{
+      const added=await db.collection(`days/${currentDate}/sales`).add(record);
+      let creditAdded=null;
+      if(pay==='credit') creditAdded=await db.collection('creditTransactions').add({customerId:customer.id,employeeName:emp.name,date:currentDate,bags,pricePerBag:price,amount,status:'pending',explanation:creditNote,sourceSaleId:added.id,ts:Date.now()});
+      showUndoToast(pay==='credit'?'Sale logged — credit pending manager review':'Sale logged', async()=>{
+        try{ await db.doc(`days/${currentDate}/sales/${added.id}`).delete(); if(creditAdded) await db.doc(`creditTransactions/${creditAdded.id}`).delete(); showToast('Sale undone'); }
+        catch(err){ showToast(describeDbError(err)); }
+      });
+      renderWorkspace();
+    }catch(e){showToast(describeDbError(e));}
+  });
+  el.querySelectorAll('[data-credit-approve]').forEach(b=>b.addEventListener('click',async()=>{if(!db)return;try{const credit=creditData.find(x=>x.id===b.dataset.creditApprove); await db.doc(`creditTransactions/${b.dataset.creditApprove}`).update({status:'approved',reviewedBy:currentRole(),reviewedAt:Date.now()}); if(credit?.customerId){const c=customersData.find(x=>x.id===credit.customerId); if(c?.status==='pending') await db.doc(`customers/${credit.customerId}`).update({status:'active',approvedBy:currentRole(),approvedAt:Date.now()});} showToast('Credit approved');}catch(e){showToast(describeDbError(e));}}));
+  el.querySelectorAll('[data-credit-reject]').forEach(b=>b.addEventListener('click',async()=>{if(!db)return;const note=prompt('Reason for rejection (optional):')||'';try{await db.doc(`creditTransactions/${b.dataset.creditReject}`).update({status:'rejected',reviewedBy:currentRole(),reviewedAt:Date.now(),explanation:note});showToast('Credit rejected');}catch(e){showToast(describeDbError(e));}}));
+  const payBtn=el.querySelector('#recordPaymentBtn'); if(payBtn) payBtn.addEventListener('click',async()=>{const customerId=el.querySelector('#paymentCustomer').value;const amount=parseFloat(el.querySelector('#paymentAmount').value);if(!customerId||!amount||amount<=0){showToast('Select customer and enter payment');return;}if(!db){showToast('No live sync in this preview');return;}const method=el.querySelector('#paymentMethod').value;const payCust=customersData.find(c=>c.id===customerId);if(!confirm(`Record payment of ${money(amount)} (${method==='momo'?'MoMo':'Cash'}) from ${payCust?payCust.name:'this customer'}?`)) return;try{await db.collection('customerPayments').add({type:'payment',customerId,amount,method,note:el.querySelector('#paymentNote').value.trim(),receivedBy:currentRole(),status:'approved',ts:Date.now()});showToast('Payment recorded');}catch(e){showToast(describeDbError(e));}});
+  el.querySelectorAll('[data-customer-payment]').forEach(b=>b.addEventListener('click',()=>{activeNav='credit';document.querySelectorAll('[data-nav]').forEach(x=>x.classList.toggle('active',x.dataset.nav==='credit'));renderWorkspace();const sel=document.getElementById('paymentCustomer');if(sel)sel.value=b.dataset.customerPayment;}));
+}
+
+
+function wireOperationsModules(){
+  const el=document.getElementById('view-workspace');
+  if(!el) return;
+  const stockBtn=el.querySelector('#stockAddBtn');
+  if(stockBtn) stockBtn.addEventListener('click',async()=>{
+    const type=el.querySelector('#stockType').value;
+    const quantity=parseFloat(el.querySelector('#stockQty').value);
+    const note=el.querySelector('#stockNote').value.trim();
+    if(!quantity||quantity<=0){showToast('Enter a valid number of bags');return;}
+    if(!db){showToast('No live sync in this preview');return;}
+    try{await db.collection('stockTransactions').add({type,quantity,date:currentDate,note,recordedBy:currentRole(),ts:Date.now()});showToast('Stock movement saved');}
+    catch(e){showToast(describeDbError(e));}
+  });
+  const exportBtn=el.querySelector('#exportReportBtn');
+  if(exportBtn) exportBtn.addEventListener('click',()=>{
+    const sales=currentRole()==='employee'?salesData.filter(s=>slugify(s.employeeName||'')===getSavedEmployeeId()):salesData;
+    const rows=[['Date','Employee','Bags','Amount','Payment','Customer']];
+    sales.forEach(s=>rows.push([currentDate,s.employeeName||'',s.bags||0,(s.amount||0).toFixed(2),s.paymentType||'',s.customerName||'']));
+    const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`vintage-cool-report-${currentDate}.csv`; a.click(); URL.revokeObjectURL(url);
+  });
+}
+function renderAll(){
+  preserveThenRender("view-dashboard", renderDashboard);
+  preserveThenRender("view-employee", renderEmployee);
+  preserveThenRender("view-manager", renderManager);
+  preserveThenRender("view-cousin", renderCousin);
+  renderWorkspace();
+  applyActiveWorkspace();
+}
+
+// Live updates can arrive mid-typing (e.g. the moment the page opens, or
+// another employee logging a sale). Redrawing the whole view would wipe
+// whatever the person is currently typing. This captures every input's
+// value and focus/cursor position first, redraws, then puts it all back.
+function preserveThenRender(containerId, renderFn){
+  const container = document.getElementById(containerId);
+  const values = {};
+  let focusedId = null, selStart = null, selEnd = null;
+  container.querySelectorAll("input[id], select[id]").forEach(inp=>{
+    values[inp.id] = inp.value;
+    if(document.activeElement === inp){
+      focusedId = inp.id;
+      try{ selStart = inp.selectionStart; selEnd = inp.selectionEnd; }catch(e){}
+    }
+  });
+
+  renderFn();
+
+  Object.keys(values).forEach(id=>{
+    const el = container.querySelector("#"+CSS.escape(id));
+    if(el) el.value = values[id];
+  });
+  if(focusedId){
+    const el = container.querySelector("#"+CSS.escape(focusedId));
+    if(el){
+      el.focus();
+      if(selStart!=null){ try{ el.setSelectionRange(selStart, selEnd); }catch(e){} }
+    }
+  }
+  if(containerId==="view-employee"){
+    if(employeeSelPrice!=null){
+      const b = container.querySelector(`#priceBtns button[data-p="${employeeSelPrice}"]`);
+      if(b) b.classList.add("sel");
+    }
+    if(employeeSelPay!=null){
+      const b = container.querySelector(`#payBtns button[data-pay="${employeeSelPay}"]`);
+      if(b) b.classList.add("sel");
+    }
+  }
+}
+
+// ---------- AUTH (login, session, role chrome) ----------
+const AUTH_KEY="vc_session_v1";
+let currentUser=null, ownerPreview=null, usersCache=[];
+
+function getSession(){ try{ const s=JSON.parse(localStorage.getItem(AUTH_KEY)||"null"); return (s&&s.username&&s.role)?s:null; }catch(e){ return null; } }
+function setSession(s){ if(s) localStorage.setItem(AUTH_KEY,JSON.stringify(s)); else localStorage.removeItem(AUTH_KEY); }
+async function sha256Hex(text){
+  const buf=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function pinHash(username,pin){ return sha256Hex("vintagecool:"+String(username).trim().toLowerCase()+":"+pin); }
+
+function fetchUsersOnce(){
+  return new Promise(resolve=>{
+    if(!db){ resolve(usersCache); return; }
+    let done=false; let unsub=null;
+    const finish=v=>{ if(done) return; done=true; try{ if(unsub) unsub(); }catch(e){} resolve(v); };
+    const timer=setTimeout(()=>finish(usersCache),9000);
+    try{
+      unsub=db.collection("users").limit(500).onSnapshot(snap=>{
+        usersCache=snap.docs.map(d=>({id:d.id,...d.data()}));
+        clearTimeout(timer); finish(usersCache);
+      }, err=>{ console.error(err); clearTimeout(timer); finish(usersCache); });
+    }catch(e){ clearTimeout(timer); finish(usersCache); }
+  });
+}
+
+async function bindEmployeeIdentity(){
+  if(!currentUser||currentUser.role!=="employee"||!db) return;
+  const slug=slugify(currentUser.name||"");
+  const deadline=Date.now()+6000;
+  while(Date.now()<deadline){
+    const rec=rosterData.find(e=>e.id===slug);
+    if(rec){ saveEmployeeId(rec.id); return; }
+    if(rosterData.length) break;
+    await new Promise(r=>setTimeout(r,400));
+  }
+  try{
+    await db.doc("roster/"+slug).set({name:currentUser.name,role:"employee",active:true,createdAt:Date.now()});
+    saveEmployeeId(slug);
+  }catch(e){ console.error(e); }
+}
+
+function applyRoleChrome(){
+  const chip=document.getElementById("userChip");
+  if(chip) chip.textContent=currentUser?(currentUser.name+" · "+roleLabel(currentUser.role)):"—";
+  document.body.classList.toggle("is-owner", !!(currentUser&&currentUser.role==="cousin"));
+  if(currentUser&&currentUser.role==="cousin"){
+    if(!ownerPreview) ownerPreview="cousin";
+    document.querySelectorAll(".role-btn[data-role]").forEach(b=>b.classList.toggle("active",b.dataset.role===ownerPreview));
+  }
+}
+function enterApp(){
+  const ls=document.getElementById("loginScreen");
+  if(ls) ls.classList.add("hidden");
+  applyRoleChrome();
+  renderDashboard();
+  applyActiveWorkspace();
+  if(activeNav!=="dashboard") renderWorkspace();
+}
+function showLogin(){
+  const ls=document.getElementById("loginScreen");
+  if(ls) ls.classList.remove("hidden");
+  const u=document.getElementById("loginUser");
+  if(u) setTimeout(()=>u.focus(),150);
+}
+async function doLogin(){
+  const errEl=document.getElementById("loginError");
+  const btn=document.getElementById("loginBtn");
+  const uname=(document.getElementById("loginUser").value||"").trim().toLowerCase();
+  const pin=(document.getElementById("loginPin").value||"").trim();
+  errEl.textContent="";
+  if(!uname||!pin){ errEl.textContent="Enter your username and PIN."; return; }
+  btn.disabled=true; btn.textContent="Signing in…";
+  try{
+    const users=await fetchUsersOnce();
+    const found=users.find(u=>String(u.username||"").toLowerCase()===uname);
+    const hash=await pinHash(uname,pin);
+    if(!found||found.pinHash!==hash){ errEl.textContent="Wrong username or PIN."; return; }
+    if(found.active===false){ errEl.textContent="This account is deactivated. Contact the owner."; return; }
+    currentUser={username:found.username,name:found.name||found.username,role:found.role||"employee"};
+    setSession(currentUser);
+    ownerPreview=null;
+    await bindEmployeeIdentity();
+    enterApp();
+    showToast("Welcome, "+currentUser.name);
+  }catch(e){ console.error(e); errEl.textContent="Connection problem — try again."; }
+  finally{ btn.disabled=false; btn.textContent="Sign in"; }
+}
+function doLogout(){ setSession(null); location.reload(); }
+async function bootAuth(){
+  const s=getSession();
+  if(s){
+    currentUser=s;
+    bindEmployeeIdentity();
+    enterApp();
+    fetchUsersOnce().then(users=>{
+      const still=users.find(u=>String(u.username||"").toLowerCase()===String(s.username).toLowerCase());
+      if(still&&still.active===false){ showToast("This account was deactivated."); setTimeout(doLogout,1200); }
+      if(still&&(still.name!==s.name||still.role!==s.role)){ currentUser={username:still.username,name:still.name||still.username,role:still.role||"employee"}; setSession(currentUser); applyRoleChrome(); renderDashboard(); }
+    });
+  } else {
+    showLogin();
+  }
+}
+document.getElementById("loginBtn").addEventListener("click",doLogin);
+["loginUser","loginPin"].forEach(id=>document.getElementById(id).addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); }));
+document.getElementById("logoutBtn").addEventListener("click",doLogout);
+
+initDb();
+bootAuth();
+</script>
+</body>
+</html>
