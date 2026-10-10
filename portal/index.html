@@ -336,7 +336,8 @@
   body.is-employee [data-nav="dashboard"],
   body.is-employee [data-nav="routes"],
   body.is-employee [data-nav="employees"],
-  body.is-employee [data-nav="reports"]{display:none;}
+  body.is-employee [data-nav="reports"],
+  body.is-employee [data-nav="settings"]{display:none;}
   body.is-employee #dateCard{display:none;}
 </style>
 </head>
@@ -493,8 +494,10 @@ function getSavedEmployeeId(){
 function saveEmployeeId(id){
   try{ localStorage.setItem("wt_employeeId", id); }catch(e){}
 }
-// 10-second Undo toast (locked spec safeguard)
+// 10-second Undo toast (locked spec safeguard) — managers/owners only;
+// employees get a plain confirmation toast with no delete/undo affordance.
 function showUndoToast(msg, onUndo){
+  if(typeof currentRole==='function' && currentRole()==='employee'){ showToast(msg); return; }
   const t = document.getElementById("toast");
   t.innerHTML = "";
   const span = document.createElement("span");
