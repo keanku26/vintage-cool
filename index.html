@@ -216,7 +216,9 @@ html.js .reveal.visible{opacity:1;transform:none;}
   padding:26px;min-height:250px;
 }
 .product-media img{
-  max-height:220px;max-width:100%;width:auto;border-radius:12px;
+  width:100%;aspect-ratio:4/3;object-fit:contain;
+  background:linear-gradient(160deg,#eaf4fc,#f8fcff);
+  border-radius:12px;
   border:4px solid #fff;box-shadow:0 8px 22px rgba(7,59,102,.14);
   transition:transform .25s ease;
 }
@@ -395,6 +397,36 @@ html.js .reveal.visible{opacity:1;transform:none;}
 .back-top.show{opacity:1;pointer-events:auto;transform:none;}
 .back-top svg{width:20px;height:20px;}
 .back-top:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+/* ---------- Mobile polish (phones & small tablets) ---------- */
+@media (max-width:879px){
+  .hero{padding:48px 0 64px;}
+  .hero-grid{gap:32px;}
+  .hero-art{max-width:420px;}
+  .hero-art img{transform:none;border-width:5px;}
+  .hero-badge{right:8px;bottom:-10px;transform:none;padding:8px 12px;font-size:.74rem;}
+  .hero-badge strong{font-size:.95rem;}
+  .section{padding:48px 0;}
+  .section-head{margin-bottom:28px;}
+  .delivery-inner{padding:24px 18px;}
+  .delivery-card{padding:18px 16px;}
+  .contact-card{padding:24px 20px;}
+  .product-body{padding:22px 20px;}
+  .wa-panel{padding:28px 22px;}
+  .why-card{padding:24px 20px;}
+  .footer-bottom{justify-content:center;text-align:center;}
+}
+@media (max-width:520px){
+  .wrap{padding:0 16px;}
+  h1{font-size:clamp(2rem,8.6vw,2.3rem);}
+  .hero .lede{font-size:1.02rem;}
+  .eyebrow{font-size:.95rem;}
+  .btn-row{gap:10px;}
+  .btn-row .btn{flex:1 1 100%;justify-content:center;padding:14px 18px;}
+  .product-media{padding:16px;}
+  .contact-item a,.contact-item span.val{font-size:.96rem;word-break:break-word;}
+  .site-footer{padding:44px 0 22px;}
+}
 </style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4.8739%204.99573C4.68111%202.59553%207.36173%201.04788%209.34396%202.41493L21.1558%2010.561C23.3276%2012.0589%2022.4824%2015.4485%2019.8616%2015.7513L15.9008%2016.2089C14.9599%2016.3176%2014.106%2016.8107%2013.5414%2017.5711L11.1647%2020.7725C9.59208%2022.8908%206.23393%2021.9279%206.0227%2019.2981L4.8739%204.99573Z%22%20fill%3D%22%233B7CD7%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%221.71429%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E" data-wb-cursor="1"></head>
 <body>
@@ -594,18 +626,7 @@ html.js .reveal.visible{opacity:1;transform:none;}
       </ul>
     </div>
     <div class="reveal">
-      <img src="production-facility.jpg" alt="Inside the Vintage Cool production facility in Ho — workers supervising the sachet filling line" loading="lazy" style="width:100%;border-radius:16px;margin-bottom:20px;display:block;">
-      <div class="location-card">
-        <p class="eyebrow">Production site</p>
-        <h3>Desiadenyo, Ho</h3>
-        <p>Along the Prof. Atta Mills Highway<br>Ho, Volta Region, Ghana</p>
-        <p class="gps">GPS: VH-0321-0388</p>
-        <div class="stat-row">
-          <div class="stat"><strong>2022</strong><span>Established</span></div>
-          <div class="stat"><strong>3</strong><span>Formats</span></div>
-          <div class="stat"><strong>FDA</strong><span>FDA/Wt 23V-101</span></div>
-        </div>
-      </div>
+      <img src="production-facility.jpg" alt="Inside the Vintage Cool production facility in Ho — workers supervising the sachet filling line" loading="lazy" style="width:100%;border-radius:16px;display:block;">
     </div>
   </div>
 </section>
