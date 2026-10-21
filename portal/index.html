@@ -333,12 +333,13 @@
   body:not(.is-owner) #previewRoles{display:none;}
 
   /* ---------- EMPLOYEE UI RESTRICTIONS ---------- */
-  body.is-employee [data-nav="dashboard"],
-  body.is-employee [data-nav="routes"],
-  body.is-employee [data-nav="employees"],
-  body.is-employee [data-nav="reports"],
-  body.is-employee [data-nav="settings"]{display:none;}
-  body.is-employee #dateCard{display:none;}
+  body.view-employee [data-nav="dashboard"],
+  body.view-employee [data-nav="routes"],
+  body.view-employee [data-nav="employees"],
+  body.view-employee [data-nav="reports"],
+  body.view-employee [data-nav="accounts"],
+  body.view-employee [data-nav="settings"]{display:none;}
+  body.view-employee #dateCard{display:none;}
 
   /* ---------- OWNER DASHBOARD (period view) ---------- */
   .period-chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 2px;}
@@ -779,8 +780,8 @@ function applyActiveWorkspace(){
   document.getElementById('view-cousin').style.display=(!isModule&&activeNav!=='dashboard'&&role==='cousin')?'block':'none';
 }
 function setActiveNav(key){
-  if(key==='accounts' && !(currentUser&&currentUser.role==='cousin')){ showToast("Accounts is owner-only."); return; }
-  if(currentUser && currentUser.role==='employee' && ['dashboard','routes','employees','reports'].includes(key)) return;
+  if(key==='accounts' && currentRole()!=='cousin'){ showToast("Accounts is owner-only."); return; }
+  if(currentRole()==='employee' && ['dashboard','routes','employees','reports','settings','accounts'].includes(key)) return;
   activeNav=key;
   document.querySelectorAll('[data-nav]').forEach(btn=>btn.classList.toggle('active',btn.dataset.nav===key));
   applyActiveWorkspace();
@@ -790,6 +791,11 @@ function setActiveNav(key){
 function goToRoleWorkspace(role){
   if(currentUser&&currentUser.role==='cousin') ownerPreview=role;
   document.querySelectorAll('.role-btn[data-role]').forEach(b=>b.classList.toggle('active',b.dataset.role===role));
+  syncViewRole();
+  if(role==='employee' && ['dashboard','routes','employees','reports','settings','accounts'].includes(activeNav)){
+    activeNav='trips';
+    document.querySelectorAll('[data-nav]').forEach(btn=>btn.classList.toggle('active',btn.dataset.nav===activeNav));
+  }
   applyActiveWorkspace();
   renderDashboard();
 }
@@ -805,6 +811,11 @@ document.querySelectorAll(".role-btn[data-role]").forEach(btn=>{
     if(!currentUser||currentUser.role!=="cousin"){ showToast("Only the owner can switch views."); return; }
     ownerPreview=btn.dataset.role;
     document.querySelectorAll(".role-btn[data-role]").forEach(b=>b.classList.toggle("active",b.dataset.role===ownerPreview));
+    syncViewRole();
+    if(ownerPreview==='employee' && ['dashboard','routes','employees','reports','settings','accounts'].includes(activeNav)){
+      activeNav='trips';
+      document.querySelectorAll('[data-nav]').forEach(b2=>b2.classList.toggle('active',b2.dataset.nav===activeNav));
+    }
     applyActiveWorkspace();
     renderDashboard();
   });
@@ -1774,12 +1785,12 @@ function renderCustomersModule(){
   const q=(window._customerSearch||'').trim().toLowerCase();
   const filtered=active.filter(c=>!q || [c.name,c.phone,c.address,c.area].some(v=>(v||'').toLowerCase().includes(q)));
   let html=`<div class="workspace-head"><div><h2>Customers</h2><div class="subline">Customer accounts and credit history</div></div><span class="status-pill">${active.length} customers</span></div>`;
-  html+=`<div class="workspace-card"><h3>Find a customer</h3><div class="workspace-search"><input id="customerSearch" value="${escapeHtml(window._customerSearch||'')}" placeholder="Name, phone, area..."><button class="btn-secondary" id="clearCustomerSearch">Clear</button></div><div class="workspace-list">${filtered.slice(0,80).map(c=>{const b=customerBalance(c.id);return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(c.name)} ${c.status==='pending'?'<span class="status-pill pending">Pending</span>':''}</div><div class="meta">${escapeHtml(c.phone||'No phone')} · ${escapeHtml(c.area||c.address||'No address')}</div></div><div style="text-align:right"><div class="amount ${b>0?'balance-positive':'balance-zero'}">${money(b)}</div><button class="btn-secondary" data-customer-view="${c.id}" style="margin-top:5px;padding:5px 8px;font-size:11px">View</button>${role==='cousin'?` <button class="btn-danger" data-customer-delete="${c.id}" style="margin-top:5px;padding:5px 8px;font-size:11px">Delete</button>`:''}</div></div>`}).join('')||'<div class="empty-state">No customers found.</div>'}</div></div>`;
+  html+=`<div class="workspace-card"><h3>Add customer</h3><div class="customer-form-stack"><label>Full name</label><input id="newCustName" class="standard-field" placeholder="Customer name"><label>Phone number</label><input id="newCustPhone" class="standard-field" type="tel" inputmode="tel" placeholder="Phone number"><label>Area / town</label><input id="newCustArea" class="standard-field" placeholder="Area / town"><label>Address</label><input id="newCustAddress" class="standard-field" placeholder="Address"><label>Notes</label><input id="newCustNotes" class="standard-field" placeholder="Optional notes"></div><div class="form-actions"><button class="primary" id="addCustomerBtn">${role==='employee'?'Add customer for review':'Add customer'}</button></div><div class="small" style="margin-top:7px">${role==='employee'?'New customers created by field staff are marked pending for manager review.':'Customers you add are active immediately.'}</div></div>`;
+  html+=`<div class="workspace-card"><h3>Find a customer</h3><div class="workspace-search"><input id="customerSearch" value="${escapeHtml(window._customerSearch||'')}" placeholder="Name, phone, area..."><button class="btn-secondary" id="clearCustomerSearch">Clear</button></div><div class="workspace-list">${filtered.slice(0,80).map(c=>{const b=customerBalance(c.id);return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(c.name)} ${c.status==='pending'?'<span class="status-pill pending">Pending</span>':''}</div><div class="meta">${escapeHtml(c.phone||'No phone')} · ${escapeHtml(c.area||c.address||'No address')}</div></div><div style="text-align:right"><div class="amount ${b>0?'balance-positive':'balance-zero'}">${money(b)}</div><button class="btn-secondary" data-customer-view="${c.id}" style="margin-top:5px;padding:5px 8px;font-size:11px">${window._selectedCustomerId===c.id?'Hide':'View'}</button>${role==='cousin'?` <button class="btn-danger" data-customer-delete="${c.id}" style="margin-top:5px;padding:5px 8px;font-size:11px">Delete</button>`:''}</div></div>`+(window._selectedCustomerId===c.id?renderCustomerDetail(c.id):'')}).join('')||'<div class="empty-state">No customers found.</div>'}</div></div>`;
   if((role==='manager'||role==='cousin') && active.some(c=>c.status==='pending')){
     const pendingCustomers=active.filter(c=>c.status==='pending');
     html+=`<div class="workspace-card"><h3>Customer requests awaiting review</h3><div class="workspace-list">${pendingCustomers.map(c=>`<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(c.name)} <span class="status-pill pending">Pending</span></div><div class="meta">${escapeHtml(c.phone||'No phone')} · ${escapeHtml(c.area||c.address||'No address')} · Added by ${escapeHtml(c.createdBy||'employee')}</div>${c.notes?`<div class="meta">Note: ${escapeHtml(c.notes)}</div>`:''}</div><div><button class="btn-secondary" data-customer-approve="${c.id}" style="padding:6px 8px;font-size:11px">Approve</button><button class="btn-danger" data-customer-reject="${c.id}" style="padding:6px 8px;font-size:11px;margin-top:5px">Reject</button></div></div>`).join('')}</div></div>`;
   }
-  html+=`<div class="workspace-card"><h3>Add customer</h3><div class="customer-form-stack"><label>Full name</label><input id="newCustName" class="standard-field" placeholder="Customer name"><label>Phone number</label><input id="newCustPhone" class="standard-field" type="tel" inputmode="tel" placeholder="Phone number"><label>Area / town</label><input id="newCustArea" class="standard-field" placeholder="Area / town"><label>Address</label><input id="newCustAddress" class="standard-field" placeholder="Address"><label>Notes</label><input id="newCustNotes" class="standard-field" placeholder="Optional notes"></div><div class="form-actions"><button class="primary" id="addCustomerBtn">${role==='employee'?'Add customer for review':'Add customer'}</button></div><div class="small" style="margin-top:7px">${role==='employee'?'New customers created by field staff are marked pending for manager review.':'Customers you add are active immediately.'}</div></div>`;
   return html;
 }
 
@@ -1793,9 +1804,9 @@ function renderCreditModule(){
   const pending=creditData.filter(x=>x.status==='pending');
   const approved=creditData.filter(x=>x.status==='approved');
   const outstanding=customersData.map(c=>({c,b:customerBalance(c.id)})).filter(x=>x.b>0).sort((a,b)=>b.b-a.b);
-  let html=`<div class="workspace-head"><div><h2>Credit</h2><div class="subline">Review credit sales, customer balances and payments</div></div><span class="status-pill ${pending.length?'pending':'approved'}">${pending.length} pending</span></div>`;
+  let html=`<div class="workspace-head"><div><h2>Credit</h2><div class="subline">Credit sales from the field wait under Pending review — once approved they add to the customer's balance, and payments reduce it.</div></div><span class="status-pill ${pending.length?'pending':'approved'}">${pending.length} pending</span></div>`;
   html+=`<div class="workspace-grid"><div class="workspace-stat"><div class="v">${pending.length}</div><div class="l">Pending review</div></div><div class="workspace-stat"><div class="v">${money(approved.reduce((a,x)=>a+(x.amount||0),0))}</div><div class="l">Approved credit</div></div><div class="workspace-stat"><div class="v">${outstanding.length}</div><div class="l">Customers owing</div></div><div class="workspace-stat"><div class="v">${money(outstanding.reduce((a,x)=>a+x.b,0))}</div><div class="l">Outstanding</div></div></div>`;
-  html+=`<div class="workspace-two"><div><div class="workspace-card"><h3>Pending review</h3><div class="workspace-list">${pending.map(x=>`<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(customerName(x.customerId))} · ${money(x.amount||0)}</div><div class="meta">${x.bags||0} bags @ ${money(x.pricePerBag||0)}/bag · ${escapeHtml(x.employeeName||'')} · ${new Date(x.ts||Date.now()).toLocaleDateString()}</div>${x.explanation?`<div class="meta">Note: ${escapeHtml(x.explanation)}</div>`:''}</div>${canManageCredit()?`<div><button class="btn-secondary" data-credit-approve="${x.id}" style="padding:6px 8px;font-size:11px">Approve</button><button class="btn-danger" data-credit-reject="${x.id}" style="padding:6px 8px;font-size:11px;margin-top:5px">Reject</button></div>`:`<span class="status-pill pending">Pending</span>`}</div>`).join('')||'<div class="empty-state">No credit transactions awaiting review.</div>'}</div></div><div><div class="workspace-card"><h3>Customers owing</h3><div class="workspace-list">${outstanding.slice(0,30).map(x=>`<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(x.c.name)}</div><div class="meta">${escapeHtml(x.c.phone||'')} · ${escapeHtml(x.c.area||'')}</div></div><span class="amount balance-positive">${money(x.b)}</span></div>`).join('')||'<div class="empty-state">No outstanding customer balances.</div>'}</div></div></div></div>`;
+  html+=`<div class="workspace-two"><div><div class="workspace-card"><h3>Pending review</h3><div class="workspace-list">${pending.map(x=>`<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(customerName(x.customerId))} · ${money(x.amount||0)}</div><div class="meta">${x.bags||0} bags @ ${money(x.pricePerBag||0)}/bag · ${escapeHtml(x.employeeName||'')} · ${new Date(x.ts||Date.now()).toLocaleDateString()}</div>${x.explanation?`<div class="meta">Note: ${escapeHtml(x.explanation)}</div>`:''}</div>${canManageCredit()?`<div><button class="btn-secondary" data-credit-approve="${x.id}" style="padding:6px 8px;font-size:11px">Approve</button><button class="btn-danger" data-credit-reject="${x.id}" style="padding:6px 8px;font-size:11px;margin-top:5px">Reject</button></div>`:`<span class="status-pill pending">Pending</span>`}</div>`).join('')||'<div class="empty-state">No credit transactions awaiting review.</div>'}</div></div><div><div class="workspace-card"><h3>Customers owing</h3><div class="workspace-list">${outstanding.slice(0,30).map(x=>`<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(x.c.name)}</div><div class="meta">${escapeHtml(x.c.phone||'')} · ${escapeHtml(x.c.area||'')}</div></div><div style="text-align:right"><span class="amount balance-positive">${money(x.b)}</span>${canManageCredit()?`<div><button class="btn-secondary" data-credit-settle="${x.c.id}" style="margin-top:5px;padding:5px 8px;font-size:11px">Paid in full ✓</button></div>`:''}</div></div>`).join('')||'<div class="empty-state">No outstanding customer balances.</div>'}</div></div></div></div>`;
   html+=`<div class="workspace-card"><h3>Record customer payment</h3><div class="row"><div><label>Customer</label><select id="paymentCustomer"><option value="">Select customer</option>${customersData.filter(c=>customerBalance(c.id)>0).map(c=>`<option value="${c.id}">${escapeHtml(c.name)} — ${money(customerBalance(c.id))}</option>`).join('')}</select></div><div><label>Amount</label><input id="paymentAmount" type="number" min="0" step="0.01" placeholder="GHS"></div></div><div class="row"><div><label>Method</label><select id="paymentMethod"><option value="cash">Cash</option><option value="momo">MoMo</option></select></div><div><label>Note</label><input id="paymentNote" class="standard-field" placeholder="Optional note"></div></div><div class="form-actions"><button class="primary" id="recordPaymentBtn">Record payment</button></div></div>`;
   return html;
 }
@@ -1906,7 +1917,6 @@ function renderWorkspace(){
   if(activeNav==='reports') html=renderReportsModule();
   if(activeNav==='settings') html=renderSettingsModule();
   if(activeNav==='accounts') html=renderAccountsModule();
-  if(window._selectedCustomerId && activeNav==='customers') html+=renderCustomerDetail(window._selectedCustomerId);
   el.innerHTML=html;
   wireWorkspace();
   wireOperationsModules();
@@ -1946,7 +1956,7 @@ function renderTripsModule(){
 function renderRoutesModule(){
   const role=currentRole();
   let html=`<div class="workspace-head"><div><h2>Routes</h2><div class="subline">Build route history from normal trips and sales — no live GPS required.</div></div><span class="status-pill">${routesData.filter(r=>r.active!==false).length} active routes</span></div>`;
-  if(role==='manager'||role==='cousin') html+=`<div class="workspace-card"><h3>Create route</h3><div class="row"><div><label>Route name</label><input id="routeName" placeholder="e.g. Ho–Kpando Monday"></div><div><label>Area / corridor</label><input id="routeArea" placeholder="e.g. Kpando / North Ho"></div></div><label>Notes / target stops</label><input id="routeNotes" placeholder="Markets, shops, schools, etc."><button class="primary" id="addRouteBtn">Create route</button></div>`;
+  if(role==='manager'||role==='cousin') html+=`<div class="workspace-card"><h3>Create route</h3><div><label>Route name</label><input id="routeName" placeholder="e.g. Ho–Kpando Monday"></div><div style="margin-top:10px"><label>Area / corridor</label><input id="routeArea" placeholder="e.g. Kpando / North Ho"></div><div style="margin-top:10px"><label>Notes / target stops</label><input id="routeNotes" placeholder="Markets, shops, schools, etc."></div><button class="primary" id="addRouteBtn" style="margin-top:12px">Create route</button></div>`;
   html+=`<div class="workspace-card"><h3>Route performance</h3><div class="workspace-list">${routesData.filter(r=>r.active!==false).map(r=>{const st=routeStats(r.id);return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(r.name)} <span class="route-badge">${escapeHtml(r.area||'Area not set')}</span></div><div class="meta">${st.trips} trips · ${st.bags} bags sold · ${st.customers} customers · ${money(st.revenue)}</div></div><div style="text-align:right">${role==='cousin'||role==='manager'?`<button class="btn-secondary" data-route-deactivate="${r.id}">Deactivate</button>`:''}${role==='cousin'?` <button class="btn-danger" data-route-delete="${r.id}" style="padding:6px 8px;font-size:11px;margin-top:5px">Delete</button>`:''}</div></div>`}).join('')||'<div class="empty-state">No routes yet. Create the first route above.</div>'}</div></div>`;
   const areaMap={}; salesData.forEach(s=>{if(!s.area&&!s.routeId)return;const key=s.area||routeById(s.routeId)?.area||'Unknown';areaMap[key]=(areaMap[key]||0)+(s.bags||0);});
   html+=`<div class="workspace-card"><h3>Route opportunity</h3><div class="meta">Areas become measurable when employees select a route and record customer stops. ${Object.keys(areaMap).length?`Current activity: ${Object.entries(areaMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>escapeHtml(x[0])+` (${x[1]} bags)`).join(' · ')}`:'No area-level sales data yet.'}</div></div>`;
@@ -2058,7 +2068,7 @@ function wireWorkspace(){
   const q=el.querySelector('#customerSearch');
   if(q){q.addEventListener('input',e=>{window._customerSearch=e.target.value; renderWorkspace();});}
   const clear=el.querySelector('#clearCustomerSearch'); if(clear) clear.addEventListener('click',()=>{window._customerSearch='';renderWorkspace();});
-  el.querySelectorAll('[data-customer-view]').forEach(b=>b.addEventListener('click',()=>{window._selectedCustomerId=b.dataset.customerView;renderWorkspace();}));
+  el.querySelectorAll('[data-customer-view]').forEach(b=>b.addEventListener('click',()=>{window._selectedCustomerId=(window._selectedCustomerId===b.dataset.customerView)?null:b.dataset.customerView;renderWorkspace();}));
   el.querySelectorAll('[data-customer-approve]').forEach(b=>b.addEventListener('click',async()=>{if(!db)return;try{await db.doc(`customers/${b.dataset.customerApprove}`).update({status:'active',approvedBy:currentRole(),approvedAt:Date.now()});showToast('Customer approved');}catch(e){showToast(describeDbError(e));}}));
   el.querySelectorAll('[data-customer-reject]').forEach(b=>b.addEventListener('click',async()=>{if(!db)return;try{await db.doc(`customers/${b.dataset.customerReject}`).update({status:'rejected',rejectedBy:currentRole(),rejectedAt:Date.now()});showToast('Customer rejected');}catch(e){showToast(describeDbError(e));}}));
   el.querySelectorAll('[data-customer-delete]').forEach(b=>b.addEventListener('click',async()=>{
@@ -2112,6 +2122,13 @@ function wireWorkspace(){
   el.querySelectorAll('[data-credit-reject]').forEach(b=>b.addEventListener('click',async()=>{if(!db)return;const note=prompt('Reason for rejection (optional):')||'';try{await db.doc(`creditTransactions/${b.dataset.creditReject}`).update({status:'rejected',reviewedBy:currentRole(),reviewedAt:Date.now(),explanation:note});showToast('Credit rejected');}catch(e){showToast(describeDbError(e));}}));
   const payBtn=el.querySelector('#recordPaymentBtn'); if(payBtn) payBtn.addEventListener('click',async()=>{const customerId=el.querySelector('#paymentCustomer').value;const amount=parseFloat(el.querySelector('#paymentAmount').value);if(!customerId||!amount||amount<=0){showToast('Select customer and enter payment');return;}if(!db){showToast('No live sync in this preview');return;}const method=el.querySelector('#paymentMethod').value;const payCust=customersData.find(c=>c.id===customerId);if(!confirm(`Record payment of ${money(amount)} (${method==='momo'?'MoMo':'Cash'}) from ${payCust?payCust.name:'this customer'}?`)) return;try{await db.collection('customerPayments').add({type:'payment',customerId,amount,method,note:el.querySelector('#paymentNote').value.trim(),receivedBy:currentRole(),status:'approved',ts:Date.now()});showToast('Payment recorded');}catch(e){showToast(describeDbError(e));}});
   el.querySelectorAll('[data-customer-payment]').forEach(b=>b.addEventListener('click',()=>{activeNav='credit';document.querySelectorAll('[data-nav]').forEach(x=>x.classList.toggle('active',x.dataset.nav==='credit'));renderWorkspace();const sel=document.getElementById('paymentCustomer');if(sel)sel.value=b.dataset.customerPayment;}));
+  el.querySelectorAll('[data-credit-settle]').forEach(b=>b.addEventListener('click',async()=>{
+    if(!db||!canManageCredit())return;
+    const cust=customersData.find(x=>x.id===b.dataset.creditSettle); if(!cust)return;
+    const bal=customerBalance(cust.id); if(bal<=0){showToast('No balance to settle');return;}
+    if(!confirm(`Record FULL payment of ${money(bal)} from ${cust.name} as CASH?\n\nThis clears their balance and removes them from the owing list.\nFor MoMo or a partial amount, use "Record customer payment" below instead.`))return;
+    try{await db.collection('customerPayments').add({type:'payment',customerId:cust.id,amount:bal,method:'cash',note:'Full settlement',receivedBy:currentRole(),status:'approved',ts:Date.now()});showToast('Balance settled: '+cust.name);}catch(e){showToast(describeDbError(e));}
+  }));
 }
 
 
@@ -2240,6 +2257,13 @@ function applyRoleChrome(){
     if(!ownerPreview) ownerPreview="cousin";
     document.querySelectorAll(".role-btn[data-role]").forEach(b=>b.classList.toggle("active",b.dataset.role===ownerPreview));
   }
+  syncViewRole();
+}
+function syncViewRole(){
+  const eff=currentRole();
+  document.body.classList.toggle("view-employee", eff==="employee");
+  document.body.classList.toggle("view-manager", eff==="manager");
+  document.body.classList.toggle("view-owner", eff==="cousin");
 }
 function enterApp(){
   const ls=document.getElementById("loginScreen");
