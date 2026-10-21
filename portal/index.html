@@ -355,6 +355,34 @@
   .mixbar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:10px 0 6px;background:var(--chip);}
   .mixbar span{display:block;height:100%;}
   .dash-note{font-size:12px;color:var(--sub);margin-top:6px;}
+
+  /* ---------- OWNER ANALYTICS PANELS (staging design language) ---------- */
+  .owner-panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;min-width:0;}
+  .owner-panel h3{margin:0 0 10px;font:700 17px 'Fraunces',serif;color:var(--brand-dark);}
+  .owner-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:12px;}
+  .owner-kpi{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--card);min-width:0;}
+  .owner-kpi .k-label{font-size:11px;color:var(--sub);margin-bottom:7px;}
+  .owner-kpi .k-value{font-size:clamp(17px,2vw,24px);font-weight:800;color:var(--brand-dark);overflow-wrap:anywhere;}
+  .owner-kpi .k-note{font-size:10.5px;color:var(--sub);margin-top:5px;}
+  .owner-analytics-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,1fr);gap:12px;}
+  .owner-chart{display:flex;align-items:flex-end;gap:8px;height:180px;padding:12px 2px 0;border-bottom:1px solid var(--line);overflow-x:auto;}
+  .owner-bar-col{flex:1;min-width:28px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;}
+  .owner-bar-value{font-size:9px;color:var(--sub);white-space:nowrap;max-width:70px;overflow:hidden;text-overflow:ellipsis;}
+  .owner-bar{width:min(32px,72%);min-height:2px;border-radius:5px 5px 0 0;background:var(--brand);}
+  .owner-bar-label{font-size:10px;color:var(--sub);white-space:nowrap;}
+  .owner-compare{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+  .owner-compare>div{background:var(--chip);border-radius:8px;padding:10px;}
+  .owner-compare .c-label{font-size:10.5px;color:var(--sub);}
+  .owner-compare .c-value{font-weight:800;font-size:15px;margin-top:4px;}
+  .owner-note{font-size:11px;color:var(--sub);line-height:1.5;margin-top:8px;}
+  .owner-table-wrap{overflow-x:auto;}
+  .dash-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .dash-table th{text-align:left;color:var(--sub);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;padding:7px 6px;border-bottom:1px solid var(--line);}
+  .dash-table td{padding:9px 6px;border-bottom:1px solid var(--line);}
+  .dash-table tr:last-child td{border-bottom:none;}
+  .dash-table .num{text-align:right;font-weight:700;}
+  .divider{height:1px;background:var(--line);margin:12px 0;}
+  @media(max-width:760px){.owner-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.owner-analytics-grid{grid-template-columns:1fr;}.owner-chart{height:155px;}}
 </style>
 </head>
 <body>
@@ -1583,16 +1611,41 @@ function renderDashBody(el, range, data, prevSales){
   const elapsedDays=Math.max(1,Math.min(spanDays,Math.round((new Date(todayStr()+"T00:00:00")-new Date(range.from+"T00:00:00"))/86400000)+1));
   const avg=t.rev/elapsedDays;
 
-  const kpi=`<div class="dash-grid" style="margin-top:14px">
-    <div class="dash-stat"><div class="icon">₵</div><div class="value">${money(t.rev)}</div><div class="label">Revenue</div>${deltaPill(t.rev,p.rev)}</div>
-    <div class="dash-stat"><div class="icon">💧</div><div class="value">${t.bags.toLocaleString()}</div><div class="label">Bags sold</div>${deltaPill(t.bags,p.bags)}</div>
-    <div class="dash-stat"><div class="icon">🤝</div><div class="value">${money(inHand)}</div><div class="label">Money collected</div><div class="hint">Cash + MoMo + debt payments</div></div>
-    <div class="dash-stat"><div class="icon">💳</div><div class="value">${money(t.credit)}</div><div class="label">Credit issued</div>${deltaPill(t.credit,p.credit)}</div>
-    <div class="dash-stat"><div class="icon">⚠️</div><div class="value">${money(outstanding)}</div><div class="label">Outstanding now</div><div class="hint">${owing.length} customer${owing.length===1?"":"s"} owing</div></div>
-    <div class="dash-stat"><div class="icon">📈</div><div class="value">${money(avg)}</div><div class="label">Avg revenue / day</div><div class="hint">over ${elapsedDays} day${elapsedDays===1?"":"s"}</div></div>
+  const kpi=`<div class="owner-kpi-grid" style="margin-top:14px">
+    <div class="owner-kpi"><div class="k-label">Sales revenue</div><div class="k-value">${money(t.rev)}</div><div class="k-note">${t.bags.toLocaleString()} bags sold</div></div>
+    <div class="owner-kpi"><div class="k-label">Cash collected</div><div class="k-value">${money(t.cash)}</div><div class="k-note">Recorded cash payments</div></div>
+    <div class="owner-kpi"><div class="k-label">MoMo collected</div><div class="k-value">${money(t.momo)}</div><div class="k-note">Recorded MoMo payments</div></div>
+    <div class="owner-kpi"><div class="k-label">Credit sales</div><div class="k-value">${money(t.credit)}</div><div class="k-note">Sales recorded as credit</div></div>
   </div>`;
 
-  const trend=`<div class="dash-section"><h3>Revenue trend</h3><div class="card" style="padding:14px">${trendChart(buildTrend(data.sales,range.from,range.to))}</div></div>`;
+  const byDay={};
+  data.sales.forEach(s=>{ const d=s.day||""; if(!d) return; byDay[d]=(byDay[d]||0)+(Number(s.amount)||0); });
+  let chart=[];
+  if(dashPeriod==="ytd"){
+    const yr=range.from.slice(0,4), endM=Number(range.to.slice(5,7));
+    for(let m=1;m<=endM;m++){ const key=yr+"-"+String(m).padStart(2,"0"); const rev=Object.keys(byDay).filter(k=>k.startsWith(key)).reduce((a,k)=>a+byDay[k],0); chart.push({label:new Date(Number(yr),m-1,1).toLocaleDateString(undefined,{month:"short"}),rev}); }
+  }else{
+    const start=new Date(range.from+"T00:00:00");
+    const days=Math.max(1,Math.round((new Date(range.to+"T00:00:00")-start)/86400000)+1);
+    const step=days>35?Math.ceil(days/14):1;
+    for(let i=0;i<days;i+=step){ let rev=0; for(let j=i;j<Math.min(days,i+step);j++){ const d=new Date(start); d.setDate(d.getDate()+j); rev+=byDay[fmtDay(d)]||0; } const d=new Date(start); d.setDate(d.getDate()+i); chart.push({label:days>35?d.toLocaleDateString(undefined,{month:"short",day:"numeric"}):d.toLocaleDateString(undefined,{day:"numeric"}),rev}); }
+  }
+  const maxRev=Math.max(1,...chart.map(x=>x.rev));
+  const chartHtml=chart.length?chart.map(x=>`<div class="owner-bar-col" title="${escapeHtml(x.label)}: ${money(x.rev)}"><div class="owner-bar-value">${x.rev?money(x.rev):"—"}</div><div class="owner-bar" style="height:${Math.max(2,(x.rev/maxRev)*100)}%"></div><div class="owner-bar-label">${escapeHtml(x.label)}</div></div>`).join(""):'<div class="empty-state">No sales in this period.</div>';
+  const trend=`<div class="owner-panel"><h3>Revenue trend</h3><div class="owner-chart">${chartHtml}</div><div class="owner-note">Revenue is grouped by day for shorter periods and by month for YTD. Empty periods display as zero; figures reflect recorded sales only.</div></div>`;
+
+  const change=p.rev?((t.rev-p.rev)/p.rev*100):null;
+  const changeText=change===null?"No previous-period baseline":`${change>=0?"↑":"↓"} ${Math.abs(change).toFixed(1)}% vs previous period`;
+  const prevLabel=dashPeriod==="today"?"Yesterday":dashPeriod==="week"?"Previous 7 days":dashPeriod==="ytd"?"Same period last year":dashPeriod==="custom"?"Previous equivalent period":"Previous month";
+  const compare=`<div class="owner-panel"><h3>Period comparison</h3><div class="owner-compare"><div><div class="c-label">Selected period</div><div class="c-value">${money(t.rev)}</div></div><div><div class="c-label">${prevLabel}</div><div class="c-value">${money(p.rev)}</div></div></div><div class="banner ${change===null?"info":change>=0?"good":"warn"}" style="margin-top:10px">${changeText}</div><div class="divider"></div><div class="money-line"><span>Bags sold</span><strong>${t.bags.toLocaleString()}</strong></div><div class="money-line"><span>Money collected</span><strong>${money(inHand)}</strong></div><div class="money-line"><span>Outstanding now</span><strong>${money(outstanding)}</strong></div><div class="money-line"><span>Free / damaged bags</span><strong>${t.free.toLocaleString()} / ${t.damaged.toLocaleString()}</strong></div><div class="money-line"><span>Avg revenue / day</span><strong>${money(avg)}</strong></div></div>`;
+
+  let monthTable="";
+  if(dashPeriod==="ytd"){
+    const yr=range.from.slice(0,4), endM=Number(range.to.slice(5,7));
+    const rowsM=[];
+    for(let m=1;m<=endM;m++){ const key=yr+"-"+String(m).padStart(2,"0"); const sm=sumSales(data.sales.filter(s=>(s.day||"").startsWith(key))); rowsM.push(`<tr><td>${new Date(Number(yr),m-1,1).toLocaleDateString(undefined,{month:"long"})}</td><td class="num">${sm.bags.toLocaleString()}</td><td class="num">${money(sm.rev)}</td><td class="num">${money(sm.cash+sm.momo)}</td><td class="num">${money(sm.credit)}</td></tr>`); }
+    monthTable=`<div class="owner-panel"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:baseline"><h3 style="margin-bottom:0">Revenue by month</h3><span class="small">${yr}</span></div><div class="owner-table-wrap"><table class="dash-table"><thead><tr><th>Month</th><th class="num">Bags sold</th><th class="num">Revenue</th><th class="num">Cash + MoMo</th><th class="num">Credit</th></tr></thead><tbody>${rowsM.join("")}</tbody></table></div><div class="owner-note">Historical totals depend on the sales records available. This is sales value by payment type, not a full profit calculation or bank balance.</div></div>`;
+  }
 
   const totMix=t.cash+t.momo+t.credit||1;
   const mix=`<div class="workspace-card"><h3>Payment mix</h3>
@@ -1638,7 +1691,7 @@ function renderDashBody(el, range, data, prevSales){
     <div class="money-line"><span>Trips with discrepancies</span><strong>${discrepancies}</strong></div>
     <div class="money-line"><span>Pending confirmations today</span><strong>${pendingConf}</strong></div></div>`;
 
-  body.innerHTML=kpi+trend+`<div class="workspace-two" style="margin-top:14px">${mix}${empCard}</div><div class="workspace-two" style="margin-top:14px">${routeCard}${custCard}</div><div style="margin-top:14px">${ops}</div><div class="form-actions" style="margin:14px 0 6px"><button class="btn-secondary" id="dashExport">Export ${range.label} CSV</button></div>`;
+  body.innerHTML=kpi+`<div class="owner-analytics-grid">${trend}${compare}</div>`+monthTable+`<div class="workspace-two" style="margin-top:2px">${mix}${empCard}</div><div class="workspace-two" style="margin-top:14px">${routeCard}${custCard}</div><div style="margin-top:14px">${ops}</div><div class="form-actions" style="margin:14px 0 6px"><button class="btn-secondary" id="dashExport">Export ${range.label} CSV</button></div>`;
   const ex=body.querySelector("#dashExport");
   if(ex) ex.addEventListener("click",()=>exportDashCsv(range,data,t,collections));
 }
