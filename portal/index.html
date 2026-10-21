@@ -1527,6 +1527,7 @@ function renderDashboard(){
   const el=document.getElementById('view-dashboard');
   const role=currentRole();
   if(role==='employee'){ renderEmployeeDash(el); return; }
+  if(role==='manager'){ renderManagerDash(el); return; }
 
   const range=periodRange(dashPeriod);
   const chips=[["today","Today"],["week","7 Days"],["month","This Month"],["ytd","YTD"],["custom","Custom"]]
@@ -1669,8 +1670,52 @@ function renderEmployeeDash(el){
   el.innerHTML=html;
 }
 
-
-// ---------- SALES / CUSTOMERS / CREDIT WORKSPACES ----------
+// Manager dashboard = today's operations only. Period analytics (weekly /
+// monthly / YTD revenue and trends) are owner-only per Etor's direction:
+// "the manager should focus on managing; such details are for the owner."
+function renderManagerDash(el){
+  const employees=getEmployeeList();
+  const totals=computeTotalsFor(null,salesData);
+  const activeTrips=employees.filter(e=>e.record && e.record.bagsLoaded!=null && e.record.bagsReturned==null).length;
+  const pendingLoads=employees.filter(e=>e.record && e.record.loadStatus==='pending').length;
+  const pendingReturns=employees.filter(e=>e.record && e.record.returnStatus==='pending').length;
+  const discrepancies=employees.filter(e=>{
+    if(!e.record || e.record.bagsReturned==null) return false;
+    const t=computeTotalsFor(e.record,salesFor(e.id));
+    return Math.abs((e.record.bagsReturned||0)-(t.bagsRemaining||0))>0 || Math.abs((e.record.cashReturned||0)-t.cash)>0;
+  }).length;
+  let topEmployees=employees.map(e=>{
+    const t=computeTotalsFor(e.record,salesFor(e.id));
+    return {name:e.name,bags:t.bagsSold,remaining:t.bagsRemaining};
+  }).sort((a,b)=>b.bags-a.bags).slice(0,5);
+  let html=`<div class="dashboard-head">
+    <div><h2>Operations Dashboard</h2><div class="date">${fmtDateLabel(currentDate)}</div></div>
+    <span class="pill ${employees.length?'confirmed':'pending'}">${employees.length} employee${employees.length===1?'':'s'} active</span>
+  </div>`;
+  html+=`<div class="dash-grid">
+    <div class="dash-stat"><div class="icon">💧</div><div class="value">${totals.bagsSold}</div><div class="label">Bags sold today</div><div class="hint">${totals.free} free · ${totals.damaged} damaged</div></div>
+    <div class="dash-stat"><div class="icon">🚚</div><div class="value">${activeTrips}</div><div class="label">Active trips</div><div class="hint">${employees.length} employees on record</div></div>
+    <div class="dash-stat"><div class="icon">💳</div><div class="value">${totals.credit>0?'Yes':'None'}</div><div class="label">Credit sales today</div><div class="hint">Review under Credit</div></div>
+    <div class="dash-stat"><div class="icon">📦</div><div class="value">${totals.bagsSold+totals.free+totals.damaged}</div><div class="label">Bags moved today</div><div class="hint">Sold + free + damaged</div></div>
+  </div>
+  <div class="dash-section"><h3>Attention required</h3><div class="attention-list">
+    ${pendingLoads?`<div class="attention-item warn"><span>⏳ Loads awaiting confirmation</span><span class="count">${pendingLoads}</span></div>`:''}
+    ${pendingReturns?`<div class="attention-item warn"><span>↩ Returns awaiting reconciliation</span><span class="count">${pendingReturns}</span></div>`:''}
+    ${discrepancies?`<div class="attention-item warn"><span>⚠️ Trips with discrepancies</span><span class="count">${discrepancies}</span></div>`:''}
+    ${!pendingLoads&&!pendingReturns&&!discrepancies?`<div class="attention-item good"><span>✓ Nothing needs attention right now</span><span class="count">Good</span></div>`:''}
+  </div></div>
+  <div class="dash-section"><h3>Quick actions</h3><div class="dash-actions">
+    <button class="dash-action" data-dash-nav="trips"><span class="aicon">🚚</span>View trips</button>
+    <button class="dash-action" data-dash-nav="routes"><span class="aicon">↗</span>Route activity</button>
+    <button class="dash-action" data-dash-nav="sales"><span class="aicon">▤</span>Sales</button>
+    <button class="dash-action" data-dash-nav="credit"><span class="aicon">₵</span>Review credit</button>
+  </div></div>
+  <div class="dash-section"><h3>Today's employee activity</h3>
+    ${topEmployees.length?`<table class="dash-table"><thead><tr><th>Employee</th><th class="num">Bags</th><th class="num">Left</th></tr></thead><tbody>${topEmployees.map(e=>`<tr><td>${escapeHtml(e.name)}</td><td class="num">${e.bags}</td><td class="num">${e.remaining ?? '–'}</td></tr>`).join('')}</tbody></table>`:`<div class="empty">No employee activity yet today.</div>`}
+  </div>`;
+  el.innerHTML=html;
+  el.querySelectorAll('[data-dash-nav]').forEach(b=>b.addEventListener('click',()=>setActiveNav(b.dataset.dashNav)));
+}
 function customerBalance(id){
   const credits=creditData.filter(x=>x.customerId===id && x.status==='approved').reduce((a,x)=>a+(x.amount||0),0);
   const payments=paymentData.filter(x=>x.customerId===id && x.status!=='rejected').reduce((a,x)=>a+(x.amount||0),0);
@@ -1902,7 +1947,7 @@ function renderRoutesModule(){
   const role=currentRole();
   let html=`<div class="workspace-head"><div><h2>Routes</h2><div class="subline">Build route history from normal trips and sales — no live GPS required.</div></div><span class="status-pill">${routesData.filter(r=>r.active!==false).length} active routes</span></div>`;
   if(role==='manager'||role==='cousin') html+=`<div class="workspace-card"><h3>Create route</h3><div class="row"><div><label>Route name</label><input id="routeName" placeholder="e.g. Ho–Kpando Monday"></div><div><label>Area / corridor</label><input id="routeArea" placeholder="e.g. Kpando / North Ho"></div></div><label>Notes / target stops</label><input id="routeNotes" placeholder="Markets, shops, schools, etc."><button class="primary" id="addRouteBtn">Create route</button></div>`;
-  html+=`<div class="workspace-card"><h3>Route performance</h3><div class="workspace-list">${routesData.filter(r=>r.active!==false).map(r=>{const st=routeStats(r.id);return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(r.name)} <span class="route-badge">${escapeHtml(r.area||'Area not set')}</span></div><div class="meta">${st.trips} trips · ${st.bags} bags sold · ${st.customers} customers · ${money(st.revenue)}</div></div>${role==='cousin'||role==='manager'?`<button class="btn-secondary" data-route-deactivate="${r.id}">Deactivate</button>`:''}</div>`}).join('')||'<div class="empty-state">No routes yet. Create the first route above.</div>'}</div></div>`;
+  html+=`<div class="workspace-card"><h3>Route performance</h3><div class="workspace-list">${routesData.filter(r=>r.active!==false).map(r=>{const st=routeStats(r.id);return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(r.name)} <span class="route-badge">${escapeHtml(r.area||'Area not set')}</span></div><div class="meta">${st.trips} trips · ${st.bags} bags sold · ${st.customers} customers · ${money(st.revenue)}</div></div><div style="text-align:right">${role==='cousin'||role==='manager'?`<button class="btn-secondary" data-route-deactivate="${r.id}">Deactivate</button>`:''}${role==='cousin'?` <button class="btn-danger" data-route-delete="${r.id}" style="padding:6px 8px;font-size:11px;margin-top:5px">Delete</button>`:''}</div></div>`}).join('')||'<div class="empty-state">No routes yet. Create the first route above.</div>'}</div></div>`;
   const areaMap={}; salesData.forEach(s=>{if(!s.area&&!s.routeId)return;const key=s.area||routeById(s.routeId)?.area||'Unknown';areaMap[key]=(areaMap[key]||0)+(s.bags||0);});
   html+=`<div class="workspace-card"><h3>Route opportunity</h3><div class="meta">Areas become measurable when employees select a route and record customer stops. ${Object.keys(areaMap).length?`Current activity: ${Object.entries(areaMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>escapeHtml(x[0])+` (${x[1]} bags)`).join(' · ')}`:'No area-level sales data yet.'}</div></div>`;
   return html;
@@ -1920,7 +1965,7 @@ function renderAccountsModule(){
     <button class="primary" id="accCreateBtn">Create account</button></div>`;
   html+=`<div class="workspace-card"><h3>All accounts</h3><div class="workspace-list">${users.map(u=>{
     const self=currentUser&&u.username===currentUser.username;
-    return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(u.name||u.username)} <span class="route-badge">${roleLabel(u.role)}</span>${self?' <span class="status-pill">you</span>':''}</div><div class="meta">@${escapeHtml(u.username||'')} · ${u.active===false?'Inactive':'Active'}</div></div>${self?'':`<button class="btn-secondary" data-acc-toggle="${escapeHtml(u.id)}" data-acc-active="${u.active===false?'0':'1'}">${u.active===false?'Activate':'Deactivate'}</button>`}</div>`;
+    return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(u.name||u.username)} <span class="route-badge">${roleLabel(u.role)}</span>${self?' <span class="status-pill">you</span>':''}</div><div class="meta">@${escapeHtml(u.username||'')} · ${u.active===false?'Inactive':'Active'}</div></div>${self?'':`<div style="text-align:right"><button class="btn-secondary" data-acc-toggle="${escapeHtml(u.id)}" data-acc-active="${u.active===false?'0':'1'}">${u.active===false?'Activate':'Deactivate'}</button> <button class="btn-danger" data-acc-delete="${escapeHtml(u.id)}" style="padding:6px 8px;font-size:11px;margin-top:5px">Delete</button></div>`}</div>`;
   }).join('')||'<div class="empty-state">No accounts yet.</div>'}</div></div>`;
   return html;
 }
@@ -1955,12 +2000,22 @@ function wireAccountsModule(){
       catch(e){ console.error(e); showToast(describeDbError(e)); }
     };
   });
+  document.querySelectorAll('[data-acc-delete]').forEach(btn=>{
+    btn.onclick=async()=>{
+      if(!db) return;
+      const id=btn.getAttribute('data-acc-delete');
+      const u=(usersCache||[]).find(x=>x.id===id)||{};
+      if(!confirm('Permanently delete the login for "'+(u.name||u.username||id)+'" (@'+(u.username||'?')+')?\n\nThey will not be able to sign in again. This cannot be undone.')) return;
+      try{ await db.doc("users/"+id).delete(); showToast("Account deleted: @"+(u.username||id)); }
+      catch(e){ console.error(e); showToast(describeDbError(e)); }
+    };
+  });
 }
 function renderEmployeesModule(){
   const role=currentRole(); const can=role==='manager'||role==='cousin';
   let html=`<div class="workspace-head"><div><h2>Employees</h2><div class="subline">Roster, status, route activity and accountability.</div></div><span class="status-pill">${rosterData.filter(e=>e.active!==false).length} active</span></div>`;
   if(can) html+=`<div class="workspace-card"><h3>Add employee</h3><div class="row"><div><label>Name</label><input id="newEmpName" placeholder="Full name"></div><div><label>Role</label><select id="newEmpRole"><option value="employee">Field employee</option><option value="manager">Manager</option></select></div></div><button class="primary" id="addEmpBtn">Add employee</button></div>`;
-  html+=`<div class="workspace-card"><h3>Employee roster</h3><div class="workspace-list">${rosterData.map(e=>{const trips=tripsData.filter(t=>slugify(t.employeeName||'')===e.id);const ss=salesData.filter(s=>slugify(s.employeeName||'')===e.id);const bags=ss.reduce((a,s)=>a+(s.bags||0),0);return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(e.name)}</div><div class="meta">${escapeHtml(e.role||'employee')} · ${trips.length} trips · ${bags} bags sold · ${e.active===false?'Inactive':'Active'}</div></div>${can?`<button class="btn-secondary" data-emp-toggle="${e.id}">${e.active===false?'Activate':'Deactivate'}</button>`:''}</div>`}).join('')||'<div class="empty-state">No employees added yet.</div>'}</div></div>`;
+  html+=`<div class="workspace-card"><h3>Employee roster</h3><div class="workspace-list">${rosterData.map(e=>{const trips=tripsData.filter(t=>slugify(t.employeeName||'')===e.id);const ss=salesData.filter(s=>slugify(s.employeeName||'')===e.id);const bags=ss.reduce((a,s)=>a+(s.bags||0),0);return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(e.name)}</div><div class="meta">${escapeHtml(e.role||'employee')} · ${trips.length} trips · ${bags} bags sold · ${e.active===false?'Inactive':'Active'}</div></div><div style="text-align:right">${can?`<button class="btn-secondary" data-emp-toggle="${e.id}">${e.active===false?'Activate':'Deactivate'}</button>`:''}${role==='cousin'?` <button class="btn-danger" data-emp-delete="${e.id}" style="padding:6px 8px;font-size:11px;margin-top:5px">Delete</button>`:''}</div></div>`}).join('')||'<div class="empty-state">No employees added yet.</div>'}</div></div>`;
   return html;
 }
 function renderSettingsModule(){
@@ -1978,8 +2033,22 @@ function wireHubModules(){
   const ms=el.querySelector('#mgrStartTripBtn'); if(ms) ms.onclick=async()=>{const emp=rosterData.find(e=>e.id===el.querySelector('#mgrTripEmp').value),routeId=el.querySelector('#mgrTripRoute').value,bags=Number(el.querySelector('#mgrTripLoad').value);if(!emp||!routeId||!bags){showToast('Complete employee, route and load');return}if(!db)return;try{await db.collection('trips').add({date:currentDate,employeeId:emp.id,employeeName:emp.name,routeId,bagsLoaded:bags,status:'active',startedAt:Date.now(),startedBy:currentRole()});await db.doc(`days/${currentDate}/employees/${emp.id}`).set({employeeName:emp.name,bagsLoaded:bags,loadStatus:'confirmed',loadConfirmedBy:currentRole(),loadConfirmedAt:Date.now()},{merge:true});showToast('Trip created');}catch(e){showToast(describeDbError(e))}};
   const ar=el.querySelector('#addRouteBtn');if(ar)ar.onclick=async()=>{const name=el.querySelector('#routeName').value.trim(),area=el.querySelector('#routeArea').value.trim(),notes=el.querySelector('#routeNotes').value.trim();if(!name){showToast('Enter route name');return}if(!db)return;try{await db.collection('routes').add({name,area,notes,active:true,createdBy:currentRole(),createdAt:Date.now()});showToast('Route created');}catch(e){showToast(describeDbError(e))}};
   el.querySelectorAll('[data-route-deactivate]').forEach(b=>b.onclick=async()=>{if(!db)return;try{await db.doc(`routes/${b.dataset.routeDeactivate}`).update({active:false});showToast('Route deactivated')}catch(e){showToast(describeDbError(e))}});
+  el.querySelectorAll('[data-route-delete]').forEach(b=>b.onclick=async()=>{
+    if(!db||currentRole()!=='cousin') return;
+    const r=routesData.find(x=>x.id===b.dataset.routeDelete); const label=r?r.name:'this route';
+    if(!confirm(`Permanently delete "${label}"?\n\nIt disappears from every list and dropdown immediately. Past trips and sales keep their records, but the route name won't show on them again. This cannot be undone.`)) return;
+    try{ await db.doc(`routes/${b.dataset.routeDelete}`).delete(); showToast(`Route "${label}" deleted`); }
+    catch(e){ showToast(describeDbError(e)); }
+  });
   const ae=el.querySelector('#addEmpBtn');if(ae)ae.onclick=async()=>{const name=el.querySelector('#newEmpName').value.trim(),role=el.querySelector('#newEmpRole').value;if(!name){showToast('Enter employee name');return}if(!db)return;const id=slugify(name);if(rosterData.some(e=>e.id===id)){showToast('Employee already exists');return}try{await db.doc(`roster/${id}`).set({name,role,active:true,createdAt:Date.now(),createdBy:'owner'});showToast('Employee added')}catch(e){showToast(describeDbError(e))}};
   el.querySelectorAll('[data-emp-toggle]').forEach(b=>b.onclick=async()=>{const e=rosterData.find(x=>x.id===b.dataset.empToggle);if(!e||!db)return;try{await db.doc(`roster/${e.id}`).update({active:e.active===false});showToast(e.active===false?'Employee activated':'Employee deactivated')}catch(err){showToast(describeDbError(err))}});
+  el.querySelectorAll('[data-emp-delete]').forEach(b=>b.onclick=async()=>{
+    if(!db||currentRole()!=='cousin') return;
+    const e=rosterData.find(x=>x.id===b.dataset.empDelete); if(!e) return;
+    if(!confirm(`Permanently delete "${e.name}" from the roster?\n\nThey disappear from every list and name picker immediately. Sales and trips they already recorded stay in the books under their name. This cannot be undone.`)) return;
+    try{ await db.doc(`roster/${e.id}`).delete(); showToast(`${e.name} deleted from roster`); }
+    catch(err){ showToast(describeDbError(err)); }
+  });
   const ss=el.querySelector('#saveSettingsBtn');if(ss)ss.onclick=async()=>{if(!db)return;const prices=[Number(el.querySelector('#setPrice1').value),Number(el.querySelector('#setPrice2').value),Number(el.querySelector('#setPrice3').value)];const companyName=el.querySelector('#setCompanyName').value.trim();try{await db.doc('settings/general').set({companyName,prices,updatedAt:Date.now(),updatedBy:'owner'});appSettings={companyName,prices};showToast('Settings saved');}catch(e){showToast(describeDbError(e))}};
 }
 
