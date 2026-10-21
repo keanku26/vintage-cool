@@ -1604,7 +1604,7 @@ function renderDashBody(el, range, data, prevSales){
   const byCust={};
   data.sales.forEach(s=>{ if(!s.customerName) return; const k=s.customerId||s.customerName; byCust[k]=byCust[k]||{name:s.customerName,rev:0,id:s.customerId}; byCust[k].rev+=s.amount||0; });
   const topCust=Object.keys(byCust).map(k=>byCust[k]).sort((a,b)=>b.rev-a.rev).slice(0,5);
-  const custCard=`<div class="workspace-card"><h3>Top customers</h3><div class="workspace-list">${topCust.map((c,i)=>`<div class="workspace-row"><div class="main"><div class="title">${i+1}. ${escapeHtml(c.name)}</div></div>${c.id&&owingIds.has(c.id)?'<span class="status-pill pending">owing</span>':""}</div><span class="amount">${money(c.rev)}</span></div>`).join("")||'<div class="empty-state">No named customers in this period.</div>'}</div></div>`;
+  const custCard=`<div class="workspace-card"><h3>Top customers</h3><div class="workspace-list">${topCust.map((c,i)=>`<div class="workspace-row"><div class="main"><div class="title">${i+1}. ${escapeHtml(c.name)}</div></div>${c.id&&owingIds.has(c.id)?'<span class="status-pill pending">owing</span>':""}<span class="amount">${money(c.rev)}</span></div>`).join("")||'<div class="empty-state">No named customers in this period.</div>'}</div></div>`;
 
   const produced=data.stock.filter(x=>x.type==="production").reduce((a,x)=>a+(Number(x.quantity)||0),0);
   const volume=t.bags+t.free+t.damaged||1;
