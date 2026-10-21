@@ -339,6 +339,21 @@
   body.is-employee [data-nav="reports"],
   body.is-employee [data-nav="settings"]{display:none;}
   body.is-employee #dateCard{display:none;}
+
+  /* ---------- OWNER DASHBOARD (period view) ---------- */
+  .period-chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 2px;}
+  .period-chips .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 15px;font-size:13px;font-weight:700;color:var(--sub);cursor:pointer;}
+  .period-chips .chip.active{background:var(--brand);color:#fff;border-color:var(--brand);}
+  .period-custom{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;}
+  .period-custom input{padding:7px 10px;font-size:13px;width:auto;}
+  .kpi-delta{display:inline-block;margin-top:4px;font-size:11px;font-weight:700;color:var(--sub);}
+  .kpi-delta.up{color:var(--good);}
+  .kpi-delta.down{color:var(--bad);}
+  .chart-scroll{overflow-x:auto;padding-bottom:4px;}
+  .chart-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-top:2px;}
+  .mixbar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:10px 0 6px;background:var(--chip);}
+  .mixbar span{display:block;height:100%;}
+  .dash-note{font-size:12px;color:var(--sub);margin-top:6px;}
 </style>
 </head>
 <body>
@@ -624,6 +639,22 @@ function SupaDb(){
       return { id: body.id };
     };
     return q;
+  };
+  this.range = async function(path, fromDay, toDay){
+    const segs = String(path).split("/");
+    let table, col;
+    if(segs[0]==="days"){
+      table = segs[2]==="employees" ? "day_employees" : "day_sales";
+      col = "day";
+    } else if(segs[0]==="customerPayments"){
+      const fromMs = new Date(fromDay+"T00:00:00").getTime();
+      const toMs = new Date(toDay+"T23:59:59.999").getTime();
+      return await sbReq("customer_payments?ts=gte."+fromMs+"&ts=lte."+toMs+"&select=*&limit=10000");
+    } else {
+      table = TABLE_MAP[segs[0]] || segs[0];
+      col = "date";
+    }
+    return await sbReq(table+"?"+col+"=gte."+fromDay+"&"+col+"=lte."+toDay+"&select=*&limit=10000");
   };
   this.doc = function(path){
     const loc = parseDbPath(path);
@@ -1421,70 +1452,221 @@ function currentRole(){
   return currentUser ? currentUser.role : "employee";
 }
 
+// ---------- DASHBOARD: period view (owner/manager) + My Day (employee) ----------
+let dashPeriod="today", dashFrom="", dashTo="", dashCache=null, dashInflight="";
+
+function fmtDay(dt){ return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
+function periodRange(key){
+  const today=todayStr(); const now=new Date();
+  if(key==="week"){ const s=new Date(now); s.setDate(s.getDate()-6); return {from:fmtDay(s),to:today,label:"Last 7 days"}; }
+  if(key==="month"){ return {from:fmtDay(new Date(now.getFullYear(),now.getMonth(),1)),to:today,label:"This month"}; }
+  if(key==="ytd"){ return {from:fmtDay(new Date(now.getFullYear(),0,1)),to:today,label:"Year to date"}; }
+  if(key==="custom"&&dashFrom&&dashTo){ return {from:dashFrom,to:dashTo,label:fmtDateLabel(dashFrom)+" → "+fmtDateLabel(dashTo)}; }
+  return {from:today,to:today,label:"Today"};
+}
+function prevRangeOf(r){
+  const f=new Date(r.from+"T00:00:00"), t=new Date(r.to+"T00:00:00");
+  const days=Math.round((t-f)/86400000)+1;
+  const pe=new Date(f); pe.setDate(pe.getDate()-1);
+  const ps=new Date(pe); ps.setDate(ps.getDate()-days+1);
+  return {from:fmtDay(ps),to:fmtDay(pe)};
+}
+async function fetchDashRange(r){
+  const [sales,trips,emps,credits,payments,stock]=await Promise.all([
+    db.range("days/x/sales",r.from,r.to),
+    db.range("trips",r.from,r.to),
+    db.range("days/x/employees",r.from,r.to),
+    db.range("creditTransactions",r.from,r.to),
+    db.range("customerPayments",r.from,r.to),
+    db.range("stockTransactions",r.from,r.to)
+  ]);
+  return {sales:sales||[],trips:trips||[],emps:emps||[],credits:credits||[],payments:payments||[],stock:stock||[]};
+}
+function sumSales(list){
+  const t={bags:0,rev:0,cash:0,momo:0,credit:0,free:0,damaged:0};
+  list.forEach(s=>{ t.bags+=s.bags||0; t.rev+=s.amount||0; t.free+=s.freeBags||0; t.damaged+=s.damagedBags||0;
+    if(s.paymentType==="cash")t.cash+=s.amount||0; else if(s.paymentType==="momo")t.momo+=s.amount||0; else if(s.paymentType==="credit")t.credit+=s.amount||0; });
+  return t;
+}
+function deltaPill(cur,prev){
+  if(!prev) return `<span class="kpi-delta">no prior period</span>`;
+  const pct=((cur-prev)/prev)*100; const up=pct>=0;
+  return `<span class="kpi-delta ${up?"up":"down"}">${up?"▲":"▼"} ${Math.abs(pct).toFixed(0)}% vs previous</span>`;
+}
+function buildTrend(sales, from, to){
+  const byDay={};
+  sales.forEach(s=>{ const d=s.day||""; if(!d) return; byDay[d]=(byDay[d]||0)+(s.amount||0); });
+  const spanDays=Math.round((new Date(to+"T00:00:00")-new Date(from+"T00:00:00"))/86400000)+1;
+  let buckets=[];
+  if(spanDays>400){
+    const mo={}; Object.keys(byDay).forEach(k=>{ const m=k.slice(0,7); mo[m]=(mo[m]||0)+byDay[k]; });
+    buckets=Object.keys(mo).sort().map(k=>({day:k,rev:mo[k]}));
+  } else if(spanDays>62){
+    const wk={};
+    Object.keys(byDay).forEach(k=>{ const d=new Date(k+"T00:00:00"); const m=new Date(d); m.setDate(d.getDate()-((d.getDay()+6)%7)); const key=fmtDay(m); wk[key]=(wk[key]||0)+byDay[k]; });
+    buckets=Object.keys(wk).sort().map(k=>({day:"w/c "+k.slice(5),rev:wk[k]}));
+  } else {
+    const cur=new Date(from+"T00:00:00"); const end=new Date(to+"T00:00:00");
+    while(cur<=end){ const k=fmtDay(cur); buckets.push({day:k.slice(5),rev:byDay[k]||0}); cur.setDate(cur.getDate()+1); }
+  }
+  return buckets;
+}
+function trendChart(buckets){
+  if(!buckets.length) return `<div class="empty-state">No sales in this period.</div>`;
+  const W=Math.max(buckets.length*30,280), H=170, max=Math.max(...buckets.map(b=>b.rev),1);
+  const step=W/buckets.length, bw=Math.max(6,step-6);
+  const bars=buckets.map((b,i)=>{
+    const h=Math.max(2,(b.rev/max)*(H-32));
+    const x=i*step+3, y=H-22-h;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="#114B9F"><title>${b.day}: GHS ${(Math.round(b.rev*100)/100).toLocaleString()}</title></rect>`;
+  }).join("");
+  return `<div class="chart-scroll"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${bars}<line x1="0" y1="${H-22}" x2="${W}" y2="${H-22}" stroke="#aab9c6" stroke-width="1"/></svg></div><div class="chart-axis"><span>${escapeHtml(buckets[0].day)}</span><span>${escapeHtml(buckets[buckets.length-1].day)}</span></div>`;
+}
+
 function renderDashboard(){
   const el=document.getElementById('view-dashboard');
   const role=currentRole();
-  const employees=getEmployeeList();
-  const totals=computeTotalsFor(null,salesData);
-  const activeTrips=employees.filter(e=>e.record && e.record.bagsLoaded!=null && e.record.bagsReturned==null).length;
-  const pendingLoads=employees.filter(e=>e.record && e.record.loadStatus==='pending').length;
-  const pendingReturns=employees.filter(e=>e.record && e.record.returnStatus==='pending').length;
-  const discrepancies=employees.filter(e=>{
-    if(!e.record || e.record.bagsReturned==null) return false;
-    const t=computeTotalsFor(e.record,salesFor(e.id));
-    return Math.abs((e.record.bagsReturned||0)-(t.bagsRemaining||0))>0 || Math.abs((e.record.cashReturned||0)-t.cash)>0;
-  }).length;
+  if(role==='employee'){ renderEmployeeDash(el); return; }
 
-  let topEmployees=employees.map(e=>{
-    const t=computeTotalsFor(e.record,salesFor(e.id));
-    return {name:e.name,bags:t.bagsSold,money:t.cash+t.momo+t.credit,remaining:t.bagsRemaining};
-  }).sort((a,b)=>b.bags-a.bags).slice(0,5);
+  const range=periodRange(dashPeriod);
+  const chips=[["today","Today"],["week","7 Days"],["month","This Month"],["ytd","YTD"],["custom","Custom"]]
+    .map(c=>`<button class="chip ${dashPeriod===c[0]?"active":""}" data-period="${c[0]}">${c[1]}</button>`).join("");
+  el.innerHTML=`<div class="dashboard-head">
+    <div><h2>Business Dashboard</h2><div class="date">${range.label} · data through ${fmtDateLabel(range.to)}</div></div>
+    <button class="btn-secondary" id="dashRefresh" style="padding:7px 12px;font-size:12px">↻ Refresh</button>
+  </div>
+  <div class="period-chips">${chips}</div>
+  <div class="period-custom" style="display:${dashPeriod==="custom"?"flex":"none"}">
+    <input type="date" id="dashFrom" value="${dashFrom||range.from}"><span class="small">to</span><input type="date" id="dashTo" value="${dashTo||range.to}"><button class="btn-secondary" id="dashApply">Apply</button>
+  </div>
+  <div id="dashBody"><div class="empty-state" style="margin-top:14px">Loading dashboard…</div></div>`;
+  el.querySelectorAll("[data-period]").forEach(b=>b.addEventListener("click",()=>{ if(dashPeriod!==b.dataset.period){ dashPeriod=b.dataset.period; renderDashboard(); } }));
+  const ap=el.querySelector("#dashApply");
+  if(ap) ap.addEventListener("click",()=>{ const f=el.querySelector("#dashFrom").value, t=el.querySelector("#dashTo").value; if(f&&t){ if(f>t){ showToast("Start date must be before end date"); return; } dashFrom=f; dashTo=t; renderDashboard(); } });
+  const rf=el.querySelector("#dashRefresh");
+  if(rf) rf.addEventListener("click",()=>{ dashCache=null; renderDashboard(); showToast("Refreshing…"); });
 
-  const employeeSelf=role==='employee' ? getSavedEmployeeId() : '';
-  const self=employeeSelf ? employees.find(e=>e.id===employeeSelf) : null;
-  const selfTotals=self ? computeTotalsFor(self.record,salesFor(self.id)) : null;
+  const body=el.querySelector("#dashBody");
+  if(!db||!db.range){ body.innerHTML=`<div class="empty-state" style="margin-top:14px">Dashboard data unavailable — check connection.</div>`; return; }
+  const key=range.from+"|"+range.to;
+  if(dashCache&&dashCache.key===key){ renderDashBody(el,range,dashCache.data,dashCache.prev); return; }
+  if(dashInflight===key) return;
+  dashInflight=key;
+  const pr=prevRangeOf(range);
+  Promise.all([fetchDashRange(range), db.range("days/x/sales",pr.from,pr.to)]).then(([data,prevSales])=>{
+    dashInflight="";
+    dashCache={key,data,prev:prevSales||[]};
+    renderDashBody(el,range,data,prevSales||[]);
+  }).catch(()=>{ dashInflight=""; const b=el.querySelector("#dashBody"); if(b) b.innerHTML=`<div class="empty-state" style="margin-top:14px">Couldn't load dashboard — check connection and tap Refresh.</div>`; });
+}
 
-  let html=`<div class="dashboard-head">
-    <div><h2>${role==='employee'?'My Day':'Business Dashboard'}</h2><div class="date">${fmtDateLabel(currentDate)}</div></div>
-    <span class="pill ${employees.length?'confirmed':'pending'}">${employees.length} employee${employees.length===1?'':'s'} active</span>
+function renderDashBody(el, range, data, prevSales){
+  const body=el.querySelector("#dashBody"); if(!body) return;
+  const t=sumSales(data.sales), p=sumSales(prevSales||[]);
+  const collections=data.payments.filter(x=>x.status!=="rejected").reduce((a,x)=>a+(Number(x.amount)||0),0);
+  const inHand=t.cash+t.momo+collections;
+  const owing=customersData.map(c=>({c,b:customerBalance(c.id)})).filter(x=>x.b>0).sort((a,b)=>b.b-a.b);
+  const outstanding=owing.reduce((a,x)=>a+x.b,0);
+  const spanDays=Math.max(1,Math.round((new Date(range.to+"T00:00:00")-new Date(range.from+"T00:00:00"))/86400000)+1);
+  const elapsedDays=Math.max(1,Math.min(spanDays,Math.round((new Date(todayStr()+"T00:00:00")-new Date(range.from+"T00:00:00"))/86400000)+1));
+  const avg=t.rev/elapsedDays;
+
+  const kpi=`<div class="dash-grid" style="margin-top:14px">
+    <div class="dash-stat"><div class="icon">₵</div><div class="value">${money(t.rev)}</div><div class="label">Revenue</div>${deltaPill(t.rev,p.rev)}</div>
+    <div class="dash-stat"><div class="icon">💧</div><div class="value">${t.bags.toLocaleString()}</div><div class="label">Bags sold</div>${deltaPill(t.bags,p.bags)}</div>
+    <div class="dash-stat"><div class="icon">🤝</div><div class="value">${money(inHand)}</div><div class="label">Money collected</div><div class="hint">Cash + MoMo + debt payments</div></div>
+    <div class="dash-stat"><div class="icon">💳</div><div class="value">${money(t.credit)}</div><div class="label">Credit issued</div>${deltaPill(t.credit,p.credit)}</div>
+    <div class="dash-stat"><div class="icon">⚠️</div><div class="value">${money(outstanding)}</div><div class="label">Outstanding now</div><div class="hint">${owing.length} customer${owing.length===1?"":"s"} owing</div></div>
+    <div class="dash-stat"><div class="icon">📈</div><div class="value">${money(avg)}</div><div class="label">Avg revenue / day</div><div class="hint">over ${elapsedDays} day${elapsedDays===1?"":"s"}</div></div>
   </div>`;
 
-  if(role==='employee'){
-    if(!self){
-      html+=`<div class="banner warn">Select your name at the top of the Sales or Trips screen to see your personal dashboard.</div>`;
-    } else {
-      html+=`<div class="dash-grid">
-        <div class="dash-stat"><div class="icon">💧</div><div class="value">${selfTotals.bagsSold}</div><div class="label">Bags sold</div></div>
-        <div class="dash-stat"><div class="icon">₵</div><div class="value">${money(selfTotals.cash+selfTotals.momo+selfTotals.credit)}</div><div class="label">Sales value</div></div>
-        <div class="dash-stat"><div class="icon">📦</div><div class="value">${selfTotals.bagsRemaining ?? '–'}</div><div class="label">Bags remaining</div></div>
-        <div class="dash-stat"><div class="icon">💳</div><div class="value">${money(selfTotals.credit)}</div><div class="label">Credit today</div></div>
-      </div>`;
-    }
+  const trend=`<div class="dash-section"><h3>Revenue trend</h3><div class="card" style="padding:14px">${trendChart(buildTrend(data.sales,range.from,range.to))}</div></div>`;
+
+  const totMix=t.cash+t.momo+t.credit||1;
+  const mix=`<div class="workspace-card"><h3>Payment mix</h3>
+    <div class="mixbar"><span style="width:${(t.cash/totMix*100).toFixed(1)}%;background:#114B9F"></span><span style="width:${(t.momo/totMix*100).toFixed(1)}%;background:#3B7CD7"></span><span style="width:${(t.credit/totMix*100).toFixed(1)}%;background:#F40000"></span></div>
+    <div class="money-line"><span>💵 Cash</span><strong>${money(t.cash)} · ${(t.cash/totMix*100).toFixed(0)}%</strong></div>
+    <div class="money-line"><span>📱 MoMo</span><strong>${money(t.momo)} · ${(t.momo/totMix*100).toFixed(0)}%</strong></div>
+    <div class="money-line"><span>💳 Credit</span><strong>${money(t.credit)} · ${(t.credit/totMix*100).toFixed(0)}%</strong></div>
+    <div class="dash-note">Debt payments collected in this period: <strong>${money(collections)}</strong></div></div>`;
+
+  const byEmp={};
+  data.sales.forEach(s=>{ const k=s.employeeName||"Unknown"; byEmp[k]=byEmp[k]||{bags:0,rev:0}; byEmp[k].bags+=s.bags||0; byEmp[k].rev+=s.amount||0; });
+  const topEmp=Object.keys(byEmp).map(k=>({name:k,...byEmp[k]})).sort((a,b)=>b.rev-a.rev).slice(0,5);
+  const empCard=`<div class="workspace-card"><h3>Top employees</h3><div class="workspace-list">${topEmp.map((e,i)=>`<div class="workspace-row"><div class="main"><div class="title">${i+1}. ${escapeHtml(e.name)}</div><div class="meta">${e.bags.toLocaleString()} bags</div></div><span class="amount">${money(e.rev)}</span></div>`).join("")||'<div class="empty-state">No sales in this period.</div>'}</div></div>`;
+
+  const byRoute={};
+  data.sales.forEach(s=>{ const k=saleAreaLabel(s)||"Unassigned"; byRoute[k]=(byRoute[k]||0)+(s.amount||0); });
+  const topRoutes=Object.keys(byRoute).map(k=>({name:k,rev:byRoute[k]})).sort((a,b)=>b.rev-a.rev).slice(0,5);
+  const routeCard=`<div class="workspace-card"><h3>Top routes / areas</h3><div class="workspace-list">${topRoutes.map((r,i)=>`<div class="workspace-row"><div class="main"><div class="title">${i+1}. ${escapeHtml(r.name)}</div></div><span class="amount">${money(r.rev)}</span></div>`).join("")||'<div class="empty-state">No route data in this period.</div>'}</div></div>`;
+
+  const owingIds=new Set(owing.map(x=>x.c.id));
+  const byCust={};
+  data.sales.forEach(s=>{ if(!s.customerName) return; const k=s.customerId||s.customerName; byCust[k]=byCust[k]||{name:s.customerName,rev:0,id:s.customerId}; byCust[k].rev+=s.amount||0; });
+  const topCust=Object.keys(byCust).map(k=>byCust[k]).sort((a,b)=>b.rev-a.rev).slice(0,5);
+  const custCard=`<div class="workspace-card"><h3>Top customers</h3><div class="workspace-list">${topCust.map((c,i)=>`<div class="workspace-row"><div class="main"><div class="title">${i+1}. ${escapeHtml(c.name)}</div></div>${c.id&&owingIds.has(c.id)?'<span class="status-pill pending">owing</span>':""}</div><span class="amount">${money(c.rev)}</span></div>`).join("")||'<div class="empty-state">No named customers in this period.</div>'}</div></div>`;
+
+  const produced=data.stock.filter(x=>x.type==="production").reduce((a,x)=>a+(Number(x.quantity)||0),0);
+  const volume=t.bags+t.free+t.damaged||1;
+  const shrink=((t.free+t.damaged)/volume)*100;
+  const empDaySales={};
+  data.sales.forEach(s=>{ const k=(s.day||"")+"|"+slugify(s.employeeName||""); empDaySales[k]=empDaySales[k]||[]; empDaySales[k].push(s); });
+  const discrepancies=data.emps.filter(rec=>{
+    if(rec.bagsReturned==null) return false;
+    const tt=computeTotalsFor(rec, empDaySales[(rec.day||"")+"|"+slugify(rec.employeeName||rec.id||"")]||[]);
+    return Math.abs((rec.bagsReturned||0)-(tt.bagsRemaining||0))>0 || Math.abs((rec.cashReturned||0)-tt.cash)>0;
+  }).length;
+  const todayEmps=getEmployeeList();
+  const pendingConf=todayEmps.filter(e=>e.record&&(e.record.loadStatus==="pending"||e.record.returnStatus==="pending")).length;
+  const ops=`<div class="workspace-card"><h3>Operations health</h3>
+    <div class="money-line"><span>Free bags given</span><strong>${t.free.toLocaleString()}</strong></div>
+    <div class="money-line"><span>Damaged bags</span><strong>${t.damaged.toLocaleString()}</strong></div>
+    <div class="money-line"><span>Shrinkage (free + damaged)</span><strong>${shrink.toFixed(1)}% of volume</strong></div>
+    <div class="money-line"><span>Produced vs sold</span><strong>${produced.toLocaleString()} / ${t.bags.toLocaleString()}</strong></div>
+    <div class="money-line"><span>Trips with discrepancies</span><strong>${discrepancies}</strong></div>
+    <div class="money-line"><span>Pending confirmations today</span><strong>${pendingConf}</strong></div></div>`;
+
+  body.innerHTML=kpi+trend+`<div class="workspace-two" style="margin-top:14px">${mix}${empCard}</div><div class="workspace-two" style="margin-top:14px">${routeCard}${custCard}</div><div style="margin-top:14px">${ops}</div><div class="form-actions" style="margin:14px 0 6px"><button class="btn-secondary" id="dashExport">Export ${range.label} CSV</button></div>`;
+  const ex=body.querySelector("#dashExport");
+  if(ex) ex.addEventListener("click",()=>exportDashCsv(range,data,t,collections));
+}
+
+function exportDashCsv(range,data,t,collections){
+  const rows=[["VINTAGE COOL — BUSINESS DASHBOARD EXPORT"],["Period",range.from+" to "+range.to],[],
+    ["SUMMARY"],["Revenue",t.rev.toFixed(2)],["Bags sold",t.bags],["Cash sales",t.cash.toFixed(2)],["MoMo sales",t.momo.toFixed(2)],["Credit issued",t.credit.toFixed(2)],["Debt payments collected",collections.toFixed(2)],["Free bags",t.free],["Damaged bags",t.damaged],[],
+    ["DAILY BREAKDOWN"],["Date","Bags","Revenue","Cash","MoMo","Credit","Free","Damaged"]];
+  const days={};
+  data.sales.forEach(s=>{ const d=s.day||""; if(!d) return; days[d]=days[d]||[]; days[d].push(s); });
+  Object.keys(days).sort().forEach(d=>{ const x=sumSales(days[d]); rows.push([d,x.bags,x.rev.toFixed(2),x.cash.toFixed(2),x.momo.toFixed(2),x.credit.toFixed(2),x.free,x.damaged]); });
+  rows.push([],["EMPLOYEE BREAKDOWN"],["Employee","Bags","Revenue"]);
+  const byEmp={};
+  data.sales.forEach(s=>{ const k=s.employeeName||"Unknown"; byEmp[k]=byEmp[k]||{bags:0,rev:0}; byEmp[k].bags+=s.bags||0; byEmp[k].rev+=s.amount||0; });
+  Object.keys(byEmp).sort((a,b)=>byEmp[b].rev-byEmp[a].rev).forEach(k=>rows.push([k,byEmp[k].bags,byEmp[k].rev.toFixed(2)]));
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}); const url=URL.createObjectURL(blob); const a=document.createElement("a");
+  a.href=url; a.download=`vintage-cool-dashboard-${range.from}_${range.to}.csv`; a.click(); URL.revokeObjectURL(url);
+}
+
+function renderEmployeeDash(el){
+  const employees=getEmployeeList();
+  const employeeSelf=getSavedEmployeeId();
+  const self=employeeSelf ? employees.find(e=>e.id===employeeSelf) : null;
+  const selfTotals=self ? computeTotalsFor(self.record,salesFor(self.id)) : null;
+  let html=`<div class="dashboard-head">
+    <div><h2>My Day</h2><div class="date">${fmtDateLabel(currentDate)}</div></div>
+    <span class="pill ${employees.length?'confirmed':'pending'}">${employees.length} employee${employees.length===1?'':'s'} active</span>
+  </div>`;
+  if(!self){
+    html+=`<div class="banner warn">Select your name at the top of the Sales or Trips screen to see your personal dashboard.</div>`;
   } else {
     html+=`<div class="dash-grid">
-      <div class="dash-stat"><div class="icon">₵</div><div class="value">${money(totals.cash+totals.momo+totals.credit)}</div><div class="label">Today's sales</div><div class="hint">Cash + MoMo + credit</div></div>
-      <div class="dash-stat"><div class="icon">💧</div><div class="value">${totals.bagsSold}</div><div class="label">Bags sold</div><div class="hint">${totals.free} free · ${totals.damaged} damaged</div></div>
-      <div class="dash-stat"><div class="icon">🚚</div><div class="value">${activeTrips}</div><div class="label">Active trips</div><div class="hint">${employees.length} employees on record</div></div>
-      <div class="dash-stat"><div class="icon">💳</div><div class="value">${money(totals.credit)}</div><div class="label">Credit today</div><div class="hint">Needs customer follow-up</div></div>
-    </div>
-    <div class="dash-section"><h3>Attention required</h3><div class="attention-list">
-      ${pendingLoads?`<div class="attention-item warn"><span>⏳ Loads awaiting confirmation</span><span class="count">${pendingLoads}</span></div>`:''}
-      ${pendingReturns?`<div class="attention-item warn"><span>↩ Returns awaiting reconciliation</span><span class="count">${pendingReturns}</span></div>`:''}
-      ${discrepancies?`<div class="attention-item warn"><span>⚠️ Trips with discrepancies</span><span class="count">${discrepancies}</span></div>`:''}
-      ${!pendingLoads&&!pendingReturns&&!discrepancies?`<div class="attention-item good"><span>✓ Nothing needs attention right now</span><span class="count">Good</span></div>`:''}
-    </div></div>
-    <div class="dash-section"><h3>Quick actions</h3><div class="dash-actions">
-      <button class="dash-action" data-dash-nav="trips"><span class="aicon">🚚</span>View trips</button>
-      <button class="dash-action" data-dash-nav="routes"><span class="aicon">↗</span>Route activity</button>
-      <button class="dash-action" data-dash-nav="sales"><span class="aicon">▤</span>Sales</button>
-      <button class="dash-action" data-dash-nav="credit"><span class="aicon">₵</span>Review credit</button>
-    </div></div>
-    <div class="dash-section"><h3>Today's employee performance</h3>
-      ${topEmployees.length?`<table class="dash-table"><thead><tr><th>Employee</th><th class="num">Bags</th><th class="num">Value</th><th class="num">Left</th></tr></thead><tbody>${topEmployees.map(e=>`<tr><td>${escapeHtml(e.name)}</td><td class="num">${e.bags}</td><td class="num">${money(e.money)}</td><td class="num">${e.remaining ?? '–'}</td></tr>`).join('')}</tbody></table>`:`<div class="empty">No employee activity yet today.</div>`}
+      <div class="dash-stat"><div class="icon">💧</div><div class="value">${selfTotals.bagsSold}</div><div class="label">Bags sold</div></div>
+      <div class="dash-stat"><div class="icon">₵</div><div class="value">${money(selfTotals.cash+selfTotals.momo+selfTotals.credit)}</div><div class="label">Sales value</div></div>
+      <div class="dash-stat"><div class="icon">📦</div><div class="value">${selfTotals.bagsRemaining ?? '–'}</div><div class="label">Bags remaining</div></div>
+      <div class="dash-stat"><div class="icon">💳</div><div class="value">${money(selfTotals.credit)}</div><div class="label">Credit today</div></div>
     </div>`;
   }
   el.innerHTML=html;
-  el.querySelectorAll('[data-dash-nav]').forEach(b=>b.addEventListener('click',()=>setActiveNav(b.dataset.dashNav)));
 }
 
 
