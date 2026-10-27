@@ -1,7 +1,7 @@
 {
-  "name": "Vintage Cool Hub",
-  "short_name": "VC Hub",
-  "description": "Vintage Cool business operations and sales management — staff portal.",
+  "name": "VC Ops",
+  "short_name": "VC Ops",
+  "description": "Vintage Cool — Operation and Sales Management staff portal.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

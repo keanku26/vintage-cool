@@ -3,7 +3,7 @@
    - Navigations (the page itself): network-first, cache fallback when offline.
    - Supabase REST calls & any non-GET: always straight to the network.
    - Same-origin static assets (icons, manifest): cache-first, refresh in background. */
-const VERSION = "vc-hub-v1";
+const VERSION = "vc-hub-v2";
 const SHELL = ["./", "./index.html", "./manifest.json", "./icons/icon-192.png", "./icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {

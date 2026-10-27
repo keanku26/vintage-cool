@@ -8,9 +8,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="VC Hub">
+<meta name="apple-mobile-web-app-title" content="VC Ops">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
-<title>Vintage Cool Hub — Business Operations & Sales Management</title>
+<title>Vintage Cool — Operation and Sales Management</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap">
 <style>
   :root{
@@ -41,11 +41,14 @@
     min-height:100%;
   }
   header{
-    position:sticky; top:0; z-index:10; background:var(--brand);
+    position:sticky; top:0; z-index:10; background:linear-gradient(120deg,var(--brand-dark),var(--brand));
     color:#fff; padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px;
   }
-  header h1{margin:0 0 2px; font-size:19px; font-weight:700; font-family:'Fraunces', serif;}
+  header h1{margin:0 0 2px; font-size:19px; font-weight:700; font-family:'Fraunces', serif; letter-spacing:.01em;}
   header .sub{font-size:12.5px; opacity:.9;}
+  .head-brand{display:flex;align-items:center;gap:11px;min-width:0;}
+  .head-drop{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;flex:0 0 auto;flex-shrink:0;}
+  .head-sub{font-size:11.5px;opacity:.85;letter-spacing:.05em;margin-top:2px;}
   .roles{display:flex; gap:8px; margin-top:12px;}
   .role-btn{
     flex:1; padding:9px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.4);
@@ -209,6 +212,11 @@
   .roles{display:flex;gap:6px;margin:0;}
   .role-btn{flex:0 0 auto;padding:7px 11px;border-radius:6px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;font-size:12px;font-weight:600;cursor:pointer;}
   .role-btn.active{background:#fff;color:var(--brand-dark);border-color:#fff;}
+  header{background:linear-gradient(120deg,var(--brand-dark),var(--brand));}
+  .head-brand{display:flex;align-items:center;gap:11px;min-width:0;}
+  .head-drop{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .head-sub{font-size:11.5px;opacity:.85;letter-spacing:.05em;margin-top:2px;}
+  header h1{letter-spacing:.01em;}
   main{max-width:920px;margin:0 auto;padding:18px 22px 80px;}
   .mobile-menu-title{display:none;}
   .dashboard-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px;}
@@ -413,8 +421,8 @@
 <div class="app-shell">
   <aside class="side-nav" aria-label="Main navigation">
     <div class="brand-lockup">
-      <div class="brand-name">💧 Vintage Cool</div>
-      <div class="brand-product">HUB</div>
+      <div class="brand-name"><svg viewBox="0 0 24 24" width="17" height="17" style="vertical-align:-3px;margin-right:4px"><path d="M12 2.2C12 2.2 5.4 10.1 5.4 14.7a6.6 6.6 0 0 0 13.2 0C18.6 10.1 12 2.2 12 2.2Z" fill="#114B9F"/></svg>Vintage Cool</div>
+      <div class="brand-product">OPS</div>
     </div>
     <nav class="nav-group" id="desktopNav">
       <button class="nav-item active" data-nav="dashboard"><span class="nav-icon">⌂</span><span>Dashboard</span></button>
@@ -436,9 +444,12 @@
 
   <div class="app-content">
     <header>
-      <div>
-        <h1>💧 Vintage Cool Hub</h1>
-        <div class="sub" id="dateLabel">Business Operations &amp; Sales Management</div>
+      <div class="head-brand">
+        <div class="head-drop"><svg viewBox="0 0 24 24" width="19" height="19"><path d="M12 2.2C12 2.2 5.4 10.1 5.4 14.7a6.6 6.6 0 0 0 13.2 0C18.6 10.1 12 2.2 12 2.2Z" fill="#fff"/></svg></div>
+        <div>
+          <h1>Vintage Cool</h1>
+          <div class="sub head-sub" id="dateLabel">Operation and Sales Management</div>
+        </div>
       </div>
       <div class="role-area">
         <div class="sub user-chip" id="userChip">—</div>
@@ -732,7 +743,7 @@ function createSupaDb(){ return new SupaDb(); }
 async function initDb(){
   try{ db = createSupaDb(); }catch(e){ db = null; showToast("Database connection failed — reload the page."); }
   document.getElementById("dateInput").value = currentDate;
-  document.getElementById("dateLabel").textContent = "Business Operations & Sales Management";
+  document.getElementById("dateLabel").textContent = "Operation and Sales Management";
   if(db){
     unsubRoster = db.collection("roster").onSnapshot(snap=>{
       rosterData = snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -794,7 +805,7 @@ document.getElementById("dateInput").addEventListener("change", (e)=>{
     return;
   }
   currentDate = e.target.value || todayStr();
-  document.getElementById("dateLabel").textContent = "Business Operations & Sales Management";
+  document.getElementById("dateLabel").textContent = "Operation and Sales Management";
   subscribeDay(currentDate);
 });
 
