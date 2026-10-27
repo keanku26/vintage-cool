@@ -2030,14 +2030,14 @@ function renderAccountsModule(){
   const users=[...usersCache].sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
   let html=`<div class="workspace-head"><div><h2>Accounts</h2><div class="subline">Create and manage portal logins for managers and employees.</div></div><span class="status-pill">${users.filter(u=>u.active!==false).length} active</span></div>`;
   html+=`<div class="workspace-card"><h3>Create account</h3>
-    <div class="row"><div><label>Full name</label><input id="accName" placeholder="e.g. Kofi Mensah"></div>
-    <div><label>Username</label><input id="accUser" placeholder="e.g. kofi" autocomplete="off"></div></div>
-    <div class="row"><div><label>PIN (4+ digits)</label><input id="accPin" type="password" inputmode="numeric" placeholder="e.g. 2468" autocomplete="off"></div>
-    <div><label>Role</label><select id="accRole"><option value="employee">Employee</option><option value="manager">Manager</option><option value="cousin">Owner</option></select></div></div>
-    <button class="primary" id="accCreateBtn">Create account</button></div>`;
+    <div><label>Full name</label><input id="accName" type="text" placeholder="e.g. Kofi Mensah"></div>
+    <div style="margin-top:10px"><label>Username</label><input id="accUser" type="text" placeholder="e.g. kofi" autocomplete="off"></div>
+    <div style="margin-top:10px"><label>PIN (4+ digits)</label><input id="accPin" type="password" inputmode="numeric" placeholder="e.g. 2468" autocomplete="off"></div>
+    <div style="margin-top:10px"><label>Role</label><select id="accRole"><option value="employee">Employee</option><option value="manager">Manager</option><option value="cousin">Owner</option></select></div>
+    <button class="primary" id="accCreateBtn" style="margin-top:12px;width:100%">Create account</button></div>`;
   html+=`<div class="workspace-card"><h3>All accounts</h3><div class="workspace-list">${users.map(u=>{
     const self=currentUser&&u.username===currentUser.username;
-    return `<div class="workspace-row"><div class="main"><div class="title">${escapeHtml(u.name||u.username)} <span class="route-badge">${roleLabel(u.role)}</span>${self?' <span class="status-pill">you</span>':''}</div><div class="meta">@${escapeHtml(u.username||'')} · ${u.active===false?'Inactive':'Active'}</div></div>${self?'':`<div style="text-align:right"><button class="btn-secondary" data-acc-toggle="${escapeHtml(u.id)}" data-acc-active="${u.active===false?'0':'1'}">${u.active===false?'Activate':'Deactivate'}</button> <button class="btn-danger" data-acc-delete="${escapeHtml(u.id)}" style="padding:6px 8px;font-size:11px;margin-top:5px">Delete</button></div>`}</div>`;
+    return `<div class="workspace-row" style="display:block"><div class="main"><div class="title">${escapeHtml(u.name||u.username)} <span class="route-badge">${roleLabel(u.role)}</span>${self?' <span class="status-pill">you</span>':''}</div><div class="meta">@${escapeHtml(u.username||'')} · ${u.active===false?'Inactive':'Active'}</div></div>${self?'':`<div style="display:flex;gap:8px;margin-top:8px"><button class="btn-secondary" data-acc-toggle="${escapeHtml(u.id)}" data-acc-active="${u.active===false?'0':'1'}" style="flex:1;padding:8px 10px;font-size:12px">${u.active===false?'Activate':'Deactivate'}</button><button class="btn-danger" data-acc-delete="${escapeHtml(u.id)}" style="flex:1;padding:8px 10px;font-size:12px">Delete</button></div>`}</div>`;
   }).join('')||'<div class="empty-state">No accounts yet.</div>'}</div></div>`;
   return html;
 }
