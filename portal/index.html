@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#114B9F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="VC Hub">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>Vintage Cool Hub — Business Operations & Sales Management</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap">
 <style>
@@ -399,6 +406,7 @@
     <input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Your PIN">
     <button id="loginBtn" type="button">Sign in</button>
     <div id="loginError"></div>
+    <button id="installBtnLogin" type="button" style="display:none;width:100%;margin-top:10px;border:1px solid #114B9F;border-radius:9px;padding:11px;font-size:14px;font-weight:700;color:#114B9F;background:#fff;cursor:pointer">⬇ Install as app</button>
     <div class="login-foot">Askpro Hub Ltd · Ho, Volta Region · Staff access only</div>
   </div>
 </div>
@@ -439,6 +447,7 @@
           <button class="role-btn" data-role="manager">Manager</button>
           <button class="role-btn active" data-role="cousin">Owner</button>
         </div>
+        <button class="role-btn" id="installBtn" type="button" style="display:none">⬇ Install app</button>
         <button class="role-btn" id="logoutBtn" type="button">Log out</button>
       </div>
     </header>
@@ -2387,6 +2396,37 @@ document.getElementById("logoutBtn").addEventListener("click",doLogout);
 
 initDb();
 bootAuth();
+
+/* ---------- PWA: service worker + install prompt ---------- */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); });
+}
+let deferredInstallPrompt=null;
+function syncInstallButtons(){
+  const show=!!deferredInstallPrompt || /iphone|ipad|ipod/i.test(navigator.userAgent);
+  ["installBtn","installBtnLogin"].forEach(id=>{ const b=document.getElementById(id); if(b) b.style.display=show?"":"none"; });
+}
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  syncInstallButtons();
+});
+window.addEventListener("appinstalled",()=>{
+  deferredInstallPrompt=null;
+  ["installBtn","installBtnLogin"].forEach(id=>{ const b=document.getElementById(id); if(b) b.style.display="none"; });
+  showToast("Vintage Cool Hub installed");
+});
+["installBtn","installBtnLogin"].forEach(id=>{
+  const b=document.getElementById(id);
+  if(b) b.addEventListener("click",async()=>{
+    if(!deferredInstallPrompt){ showToast("On iPhone: Share → Add to Home Screen"); return; }
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    syncInstallButtons();
+  });
+});
+syncInstallButtons();
 </script>
 </body>
 </html>
